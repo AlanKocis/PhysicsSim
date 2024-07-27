@@ -5,7 +5,7 @@
 Engine::Engine(ENGINE_CONFIG_ID ID)
 {
 	glfwInit();
-	this->window = glfwCreateWindow(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT, "Macro Log", NULL, NULL);
+	this->window = glfwCreateWindow(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT, "hObbes", NULL, NULL);
 	if (!this->window)
 	{
 		printf("Critical error in Engine.cpp :: Couldn't create GLFW window\n");
@@ -37,14 +37,15 @@ Engine::Engine(ENGINE_CONFIG_ID ID)
 
 	ImGui_ImplOpenGL3_Init("#version 330");
 	ImGui_ImplGlfw_InitForOpenGL(this->window, true);
+	ImGui::StyleColorsLight();
 	printf("initialized imgui\n");
-
 
 	this->windowWidth = INIT_WINDOW_WIDTH;
 
 	this->windowHeight = INIT_WINDOW_HEIGHT;
 	this->lastMousePos[MOUSE_POS_INDEX_ID::X] = INIT_WINDOW_WIDTH / 2.0;
 	this->lastMousePos[MOUSE_POS_INDEX_ID::Y] = INIT_WINDOW_HEIGHT / 2.0;
+	this->lastFrameTime = glfwGetTime();
 	this->resourceManager.loadResources();
 	printf("Finished engine initialization\n");
 
@@ -109,6 +110,23 @@ bool Engine::isRunning()
 	return this->running;
 }
 
+void Engine::updateFrame()
+{
+	float T = glfwGetTime();
+	this->deltaTime = T - lastFrameTime;
+	this->lastFrameTime = T;
+	this->FPS = 1.0f / deltaTime;
+
+	processKeyboardInput(window);
+	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (!worldRenderTarget)
+		return;
+	worldRenderTarget->drawWorld(resourceManager.getMeshBufferPtr(), resourceManager.getShaderBufferPtr());
+}
+
+
 void Engine::updateWindow()
 {
 	glfwSwapBuffers(this->window);
@@ -126,9 +144,45 @@ void Engine::updateGUI()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	static ImVec4 RED(1, 0, 0, 1);
+	static ImVec4 WHITE(1, 1, 1, 1);
+	
+
+
+
+
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(200, 300));
-	ImGui::Begin("debug", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	ImGui::SetNextWindowSize(ImVec2(200, 400));
+	ImGui::Begin("debug", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground);
+
+	ImGui::TextColored(WHITE, "%.10fms", this->deltaTime);
+	ImGui::TextColored(WHITE, "%.3f fps", this->FPS);
+
+
+
+
+	ImGui::TextColored(WHITE, "W\t-\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "FORWARDS");
+	ImGui::TextColored(WHITE, "A\t-\t");
+	ImGui::SameLine(); 
+	ImGui::TextColored(RED, "LEFT");
+	ImGui::TextColored(WHITE, "S\t-\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "BACKWARDS");
+	ImGui::TextColored(WHITE, "D\t-\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "RIGHT");
+	ImGui::TextColored(WHITE, "E\t-\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "UP");
+	ImGui::TextColored(WHITE, "Q\t-\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "DOWN");
+	ImGui::TextColored(WHITE, "ESC  -\t");
+	ImGui::SameLine();
+	ImGui::TextColored(RED, "EXIT");
+
 	ImGui::End();
 
 	
@@ -170,16 +224,6 @@ void Engine::processKeyboardInput(GLFWwindow *window)
 
 }
 
-void Engine::updateFrame()
-{
-	processKeyboardInput(window);
-	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (!worldRenderTarget)
-		return;
-	worldRenderTarget->drawWorld(resourceManager.getMeshBufferPtr(), resourceManager.getShaderBufferPtr());
-}
 
 double Engine::getLastMousePos(const MOUSE_POS_INDEX_ID& index)
 {
@@ -190,6 +234,16 @@ void Engine::setLastMousePosition(const double &x, const double &y)
 {
 	lastMousePos[MOUSE_POS_INDEX_ID::X] = x;
 	lastMousePos[MOUSE_POS_INDEX_ID::Y] = y;
+}
+
+float &Engine::getDeltaTime()
+{
+	return deltaTime;
+}
+
+float &Engine::getFPS()
+{
+	return FPS;
 }
 
 const World *Engine::getWorldRenderTarget()

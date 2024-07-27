@@ -41,6 +41,7 @@ class Engine
 {
 private:
 	ResourceManager resourceManager;
+	float lastFrameTime, deltaTime, FPS;
 	int windowWidth;
 	int windowHeight;
 	double lastMousePos[2];
@@ -59,6 +60,8 @@ public:
 	bool isRunning();
 	double getLastMousePos(const MOUSE_POS_INDEX_ID& index);
 	void setLastMousePosition(const double &x, const double &y);
+	float& getDeltaTime();
+	float& getFPS();
 	void End();
 };
 #endif

@@ -16,6 +16,4 @@ public:
 	Cube(const glm::vec3 &color, const float &posX, const float &posY, const float &posZ, const float &scaleX, const float &scaleY, const float &scaleZ, const float &rotX, const float &rotY, const float &rotZ);
 	glm::mat4& getWorldMatrix();
 };
-
-
 #endif
