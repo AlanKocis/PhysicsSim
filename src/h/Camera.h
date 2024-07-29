@@ -10,7 +10,7 @@ typedef glm::mat4 mat4;
 
 #define DEFAULT_FOV ( glm::radians(45.0F) )
 #define DEFAULT_MOUSE_SENSITIVITY 0.1F
-#define DEFAULT_FLY_SPEED 0.005F
+#define DEFAULT_FLY_SPEED 4.0F
 #define DEFAULT_POSITION_VECTOR {0.0F, 1.0F, 1.0F} 
 #define DEFAULT_FORWARD_VECTOR {0.0F, 0.0F, -1.0F}
 #define DEFAULT_ROTATION_ANGLES {0.0F, -90.0F, 0.0F}
@@ -47,7 +47,8 @@ public:
 	mat4 &getViewMatrix();
 	bool isTurnable();
 	bool isMoveable();
-	void processCameraMovement(const CAMERA_DIRECTION& direction);
+	void setFirstMouse();
+	void processCameraMovement(const CAMERA_DIRECTION& direction, const float& dT);
 };
 
 

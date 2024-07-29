@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <h/Renderer.h>
 #include <h/Camera.h>
 #include <h/Mesh.h>
 #include <h/ResourceDir.h>
@@ -19,6 +20,8 @@
 
 #define INIT_WINDOW_WIDTH 1600
 #define INIT_WINDOW_HEIGHT 900
+#define INIT_MOUSE_MODE GLFW_CURSOR_DISABLED
+
 
 void _glfwFramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void _glfwCursorPosCallback(GLFWwindow *window, double xpos, double ypos);
@@ -36,32 +39,43 @@ enum MOUSE_POS_INDEX_ID
 	Y
 };
 
+struct Mouse
+{
+	int mouseModes[2] = {GLFW_CURSOR_DISABLED, GLFW_CURSOR_NORMAL};
+	bool currentModeFlag = 0;
+};
 
 class Engine
 {
 private:
 	ResourceManager resourceManager;
+	Mouse mouseData{};
 	float lastFrameTime, deltaTime, FPS;
 	int windowWidth;
 	int windowHeight;
+	int captureMouseIndex;
 	double lastMousePos[2];
 	GLFWwindow *window;
 	World *worldRenderTarget;
-	bool running = true;
+	bool running, firstRun, keyboardInputFlag;
 	Engine(ENGINE_CONFIG_ID ID);
 public:
 	static Engine &instance();
+	ResourceManager &getResourceManager();
 	World *loadWorld(const WORLD_TYPE &ID);
-	const World *getWorldRenderTarget();
+	World *getWorldRenderTarget();
 	void updateFrame();
 	void updateWindow();
 	void updateGUI();
-	void processKeyboardInput(GLFWwindow *window);
+	void processKeyboardInput();
 	bool isRunning();
 	double getLastMousePos(const MOUSE_POS_INDEX_ID& index);
 	void setLastMousePosition(const double &x, const double &y);
+	void setWindowWidth(const int &w);
+	void setWindowHeight(const int &h);
 	float& getDeltaTime();
 	float& getFPS();
 	void End();
+	bool shouldMoveMouse();
 };
 #endif

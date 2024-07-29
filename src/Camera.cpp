@@ -92,32 +92,39 @@ bool Camera::isMoveable()
 	return moveable;
 }
 
+void Camera::setFirstMouse()
+{
+	this->firstMouse = true;
+}
 
 
-void Camera::processCameraMovement(const CAMERA_DIRECTION &direction)
+
+void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const float& dT)
 {
 	if (!this->isMoveable())
 		return;
 
+
+	float SPEED = flySpeed * dT;
 	switch (direction)
 	{
 	case FORWARD:
-		this->positionVector += flySpeed * this->forwardVector;
+		this->positionVector += SPEED * this->forwardVector;
 		break;
 	case BACK:
-		this->positionVector -= flySpeed * this->forwardVector;
+		this->positionVector -= SPEED * this->forwardVector;
 		break;
 	case LEFT:
-		this->positionVector -= flySpeed * this->rightVector;
+		this->positionVector -= SPEED * this->rightVector;
 		break;
 	case RIGHT:
-		this->positionVector += flySpeed * this->rightVector;
+		this->positionVector += SPEED * this->rightVector;
 		break;
 	case UP:
-		this->positionVector.y += flySpeed;
+		this->positionVector.y += SPEED;
 		break;
 	case DOWN:
-		this->positionVector.y -= flySpeed;
+		this->positionVector.y -= SPEED;
 		break;
 	}
 

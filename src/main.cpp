@@ -2,15 +2,16 @@
 
 int main()
 {
-	Engine& GL_Engine = Engine::instance();
-	while (GL_Engine.isRunning())
+	Engine& core = Engine::instance();
+
+	while (core.isRunning())
 	{
-		GL_Engine.updateFrame();
-		GL_Engine.updateGUI();
-		GL_Engine.updateWindow();
+		core.updateFrame();
+		core.updateGUI();
+		core.updateWindow();
 	}
+	 
 
-
-	GL_Engine.End();
+	core.End();
 	return 0;
 }
