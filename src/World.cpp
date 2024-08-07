@@ -7,6 +7,17 @@ World::World()
 	targetCamera = nullptr;
 }
 
+void World::update(float time)
+{
+	for (Cube &cube : this->cubeBuffer)
+	{
+		cube.updatePhysicsComponent(time);
+	}
+
+
+
+}
+
 void World::addCamera(bool replaceTarget, const int &camWidth, const int &camHeight, const Camera &camera)
 {
 	Camera& cam = worldCameras.emplace_back(camera);

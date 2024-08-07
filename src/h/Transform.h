@@ -8,7 +8,7 @@
 
 struct Transform
 {
-	glm::vec4 pos;
+	glm::vec3 pos;
 	glm::vec3 scale;
 	glm::vec3 rotation;
 	glm::mat4 worldMatrix;

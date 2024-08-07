@@ -17,6 +17,9 @@
 #include <h/Shader.h>
 #include <h/World.h>
 #include <h/ResourceManager.h>
+#include <h/Particle.h>
+#include <h/ForceGen.h>
+
 
 #define INIT_WINDOW_WIDTH 1600
 #define INIT_WINDOW_HEIGHT 900

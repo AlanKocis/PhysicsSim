@@ -68,20 +68,21 @@ Engine::Engine(ENGINE_CONFIG_ID ID)
 	this->firstRun = true;
 	this->keyboardInputFlag = 1;
 	this->resourceManager.loadResources();
-	this->worldRenderTarget = this->loadWorld(MANY_CUBES);
+	this->worldRenderTarget = this->loadWorld(DEFAULT_1);
 	printf("Finished engine initialization\n");
 }
                                                                        
 World *Engine::loadWorld(const WORLD_TYPE &ID)
 {
 	World *ptr = nullptr;
-	switch (ID)
+	switch (ID) 
 	{
 	case DEFAULT_1:
 		ptr = new World();
 		ptr->addCamera(true, this->windowWidth, this->windowHeight, Camera(windowWidth, windowHeight));
-		ptr->addCube(glm::vec3(0, 0, 0), -1.0F, 0.0F, -2.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
-		ptr->addCube(glm::vec3(0, 0, 0), 1.0F, 0.0F, -2.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+		ptr->addCube(glm::vec3(0, 0, 0), -1.0F, 10.0F, -2.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+
+
 		printf("loaded world DEFAULT_1\n");
 		break;
 	case MANY_CUBES:
@@ -118,6 +119,13 @@ void Engine::updateFrame()
 	this->deltaTime = T - lastFrameTime;
 	this->lastFrameTime = T;
 	this->FPS = 1.0f / deltaTime;
+
+	//update Positions
+	if (this->worldRenderTarget)
+		this->worldRenderTarget->update(this->deltaTime);
+
+
+
 
 	processKeyboardInput();
 	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
