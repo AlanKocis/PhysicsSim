@@ -68,7 +68,7 @@ Engine::Engine(ENGINE_CONFIG_ID ID)
 	this->firstRun = true;
 	this->keyboardInputFlag = 1;
 	this->resourceManager.loadResources();
-	this->worldRenderTarget = this->loadWorld(DEFAULT_1);
+	this->worldRenderTarget = this->loadWorld(GRAVITY_DEMO);
 	printf("Finished engine initialization\n");
 }
                                                                        
@@ -77,7 +77,7 @@ World *Engine::loadWorld(const WORLD_TYPE &ID)
 	World *ptr = nullptr;
 	switch (ID) 
 	{
-	case DEFAULT_1:
+	case DEFAULT:
 		ptr = new World();
 		ptr->addCamera(true, this->windowWidth, this->windowHeight, Camera(windowWidth, windowHeight));
 		ptr->addCube(glm::vec3(0, 0, 0), -1.0F, 10.0F, -2.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
@@ -85,14 +85,14 @@ World *Engine::loadWorld(const WORLD_TYPE &ID)
 
 		printf("loaded world DEFAULT_1\n");
 		break;
-	case MANY_CUBES:
+	case GRAVITY_DEMO:
 		ptr = new World();
 		ptr->addCamera(true, this->windowWidth, this->windowHeight, Camera(windowWidth, windowHeight));
-		for (float x = 0; x < 300; x += 3)
+		for (float x = 0; x < 30; x += 3)
 		{
-			for (int z = 0; z < 300; z += 3)
+			for (int z = 0; z < 30; z += 3)
 			{
-				ptr->addCube(glm::vec3(0, 0, 0), (x - 250.0F), 10.0F, (z - 250.0F), 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+				ptr->addCube(glm::vec3(0, 0, 0), (x - 25.0F), 10.0F, (z - 25.0F), 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
 
 			}
 		}
