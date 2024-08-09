@@ -48,6 +48,12 @@ struct Mouse
 	bool currentModeFlag = 0;
 };
 
+namespace GUI
+{
+	const ImVec4 RED(1, 0, 0, 1);
+	const ImVec4 WHITE(1, 1, 1, 1);
+}
+
 class Engine
 {
 private:
@@ -69,6 +75,7 @@ public:
 	World *getWorldRenderTarget();
 	void updateFrame();
 	void updateWindow();
+	void guiObjectList();
 	void updateGUI();
 	void processKeyboardInput();
 	bool isRunning();
@@ -76,9 +83,11 @@ public:
 	void setLastMousePosition(const double &x, const double &y);
 	void setWindowWidth(const int &w);
 	void setWindowHeight(const int &h);
+	int getWindowWidth();
+	int getWindowHeight();
 	float& getDeltaTime();
 	float& getFPS();
 	void End();
-	bool shouldMoveMouse();
+	bool shouldMoveTargetCam();
 };
 #endif

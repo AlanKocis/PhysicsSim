@@ -49,6 +49,7 @@ public:
 	bool isMoveable();
 	void setFirstMouse();
 	void processCameraMovement(const CAMERA_DIRECTION& direction, const float& dT);
+	glm::vec3 &getWorldPos();
 };
 
 

@@ -7,6 +7,7 @@
 namespace Renderer
 {
 	void DrawWorld(World& world);
+	void DrawCube(Cube& cube);
 }
 
 

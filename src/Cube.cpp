@@ -27,3 +27,36 @@ bool Cube::isSelected()
 {
 	return this->selected;
 }
+
+void Cube::setPos(const glm::vec3 &pos)
+{
+	this->transform.pos.x = pos.x;
+	this->transform.pos.y = pos.y;
+	this->transform.pos.z = pos.z;
+	this->physicsComponent.setPosition(pos);
+}
+
+void Cube::setRotation(const glm::vec3 rot)
+{
+	this->transform.rotation = rot;
+}
+
+void Cube::setMass(const float & m)
+{
+	this->physicsComponent.setMass(m);
+}
+
+void Cube::updateWorldMatrix()
+{
+	this->transform.updateWorldMatrix();
+}
+
+Transform & Cube::getTransform()
+{
+	return this->transform;
+}
+
+void Cube::addForce(glm::vec3 &force)
+{
+	this->physicsComponent.addForce(force);
+}

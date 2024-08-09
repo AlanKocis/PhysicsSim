@@ -15,6 +15,7 @@ enum WORLD_TYPE
 {
 	DEFAULT,
 	GRAVITY_DEMO,
+	FORCE_DEMO,
 	NUM_WORLD_TYPES
 };
 
@@ -23,6 +24,7 @@ class World
 
 private:
 	std::vector<Cube> cubeBuffer;
+	size_t numCubes;
 	std::vector<Camera> worldCameras;
 	Camera *targetCamera;
 public:
@@ -32,6 +34,7 @@ public:
 	void addCube(const glm::vec3 &color, const float &posX, const float &posY, const float &posZ, const float &scaleX, const float &scaleY, const float &scaleZ, const float &rotX, const float &rotY, const float &rotZ);
 	Camera *getTargetCamera();
 	std::vector<Cube> &getCubeBufferReference();
+	int getNumCubes();
 };
 
 #endif

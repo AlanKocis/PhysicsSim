@@ -20,5 +20,11 @@ public:
 	void updatePhysicsComponent(float time);
 	glm::mat4& getWorldMatrix();
 	bool isSelected();
+	void setPos(const glm::vec3 &pos);
+	void setRotation(const glm::vec3 rot);
+	void setMass(const float &m);
+	void updateWorldMatrix();
+	Transform &getTransform();
+	void addForce(glm::vec3 &force);
 };
 #endif

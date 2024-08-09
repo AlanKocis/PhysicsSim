@@ -11,7 +11,7 @@ void _glfwFramebufferSizeCallback(GLFWwindow *window, int width, int height)
 void _glfwCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
 	Engine &engine = Engine::instance();
-	if (engine.shouldMoveMouse())
+	if (engine.shouldMoveTargetCam())
 		engine.getWorldRenderTarget()->getTargetCamera()->updateMousePos(xpos, ypos, engine.getLastMousePos(MOUSE_POS_INDEX_ID::X), engine.getLastMousePos(MOUSE_POS_INDEX_ID::Y));
 	engine.setLastMousePosition(xpos, ypos);
 }
@@ -68,7 +68,7 @@ Engine::Engine(ENGINE_CONFIG_ID ID)
 	this->firstRun = true;
 	this->keyboardInputFlag = 1;
 	this->resourceManager.loadResources();
-	this->worldRenderTarget = this->loadWorld(GRAVITY_DEMO);
+	this->worldRenderTarget = this->loadWorld(FORCE_DEMO);
 	printf("Finished engine initialization\n");
 }
                                                                        
@@ -97,7 +97,14 @@ World *Engine::loadWorld(const WORLD_TYPE &ID)
 			}
 		}
 		printf("loaded world MANY_CUBES\n");
+		break;
+	case FORCE_DEMO:
+		ptr = new World();
+		ptr->addCamera(true, this->windowWidth, this->windowHeight, Camera(windowWidth, windowHeight));
+		ptr->addCube(glm::vec3(0, 0, 0), 0.0F, 5.0F, -2.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
 
+		printf("loaded world FORCE_DEMO\n");
+		break;
 	}
 
 
@@ -147,46 +154,108 @@ void Engine::updateWindow()
 	}
 }
 
+void Engine::guiObjectList()
+{
+	World *targetWorld = this->worldRenderTarget;
+	if (!targetWorld)
+		return;
+	if (!targetWorld->getTargetCamera())
+		return;
+
+	std::vector<Cube> &targetCubeBuffer = this->worldRenderTarget->getCubeBufferReference();
+	if (targetCubeBuffer.size() <= 0)
+		return;
+
+	static int cubeIndex = 0;
+	ImGui::Begin("cubes", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+
+
+	ImGui::TextColored(GUI::WHITE, "Object Type:\tCube");
+	ImGui::TextColored(GUI::WHITE, "Index:      \t%d", cubeIndex);
+	ImGui::Dummy(ImVec2(0.0F, 100.0F));
+
+
+	static glm::vec3 guiForceVec{ 0.0F, 0.0F, 0.0F };
+	Transform &cubeTransform = targetCubeBuffer[cubeIndex].getTransform();
+
+
+
+	ImGui::TextColored(GUI::WHITE, "Apply Force:");
+	ImGui::SameLine();
+	ImGui::InputFloat3("##force", &guiForceVec[0], "%.2f");
+	if (ImGui::Button("Apply", ImVec2(40, 20)))
+	{
+		guiForceVec.x *= this->FPS * 2;
+		guiForceVec.y *= this->FPS * 2;
+		guiForceVec.z *= this->FPS * 2;
+		targetCubeBuffer[cubeIndex].addForce(guiForceVec);
+		guiForceVec = glm::vec3(0, 0, 0);
+	}
+	if (ImGui::Button("##left", ImVec2(20, 20)))
+	{
+		if (cubeIndex > 0)
+			cubeIndex--;
+	}
+
+	ImGui::SameLine();	
+	if (ImGui::Button("##right", ImVec2(20, 20)))
+	{
+		if ((cubeIndex + 1) < targetWorld->getNumCubes())
+			cubeIndex++;
+		
+	}
+
+	ImGui::TextColored(ImVec4(1, 1, 1, 1), "%d", cubeIndex);
+
+	ImGui::End();
+}
+
 void Engine::updateGUI()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
-	static ImVec4 RED(1, 0, 0, 1);
-	static ImVec4 WHITE(1, 1, 1, 1);
 	
 
 
 
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(500, 500));
+	ImGui::SetNextWindowSize(ImVec2(500, 200));
 	ImGui::Begin("debug", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
 
-	ImGui::TextColored(WHITE, "%.10fms", this->deltaTime);
-	ImGui::TextColored(WHITE, "%.3ffps", this->FPS);
+	ImGui::TextColored(GUI::WHITE, "%.10fms", this->deltaTime);
+	ImGui::TextColored(GUI::WHITE, "%.3ffps", this->FPS);
 
 
 
 
 
-	ImGui::TextColored(WHITE, "WASD -\t");
+	ImGui::TextColored(GUI::WHITE, "WASD -\t");
 	ImGui::SameLine();
-	ImGui::TextColored(RED, "MOVE");
-	ImGui::TextColored(WHITE, "E\t-\t");
+	ImGui::TextColored(GUI::RED, "MOVE");
+	ImGui::TextColored(GUI::WHITE, "E\t-\t");
 	ImGui::SameLine();
-	ImGui::TextColored(RED, "UP");
-	ImGui::TextColored(WHITE, "Q\t-\t");
+	ImGui::TextColored(GUI::RED, "UP");
+	ImGui::TextColored(GUI::WHITE, "Q\t-\t");
 	ImGui::SameLine();
-	ImGui::TextColored(RED, "DOWN");
-	ImGui::TextColored(WHITE, "ESC  -\t");
+	ImGui::TextColored(GUI::RED, "DOWN");
+	ImGui::TextColored(GUI::WHITE, "ESC  -\t");
 	ImGui::SameLine();
-	ImGui::TextColored(RED, "TOGGLE MOUSE ");
+	ImGui::TextColored(GUI::RED, "EDITOR MODE ");
 
 	ImGui::End();
 
-	
+	int height = getWindowHeight();
+	ImGui::SetNextWindowPos(ImVec2(0, 175));
+	ImGui::SetNextWindowSize(ImVec2(250, 300));
+	ImGui::StyleColorsDark();
+
+//	Had to wrap this in a function so I could do a safe return; on nullptr.
+	this->guiObjectList();
+
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -196,6 +265,14 @@ void Engine::updateGUI()
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
+
+
+
+
+
+
+
+
 }
 
 void Engine::processKeyboardInput()
@@ -300,7 +377,17 @@ void Engine::setWindowHeight(const int &h)
 	this->windowHeight = h;
 }
 
-bool Engine::shouldMoveMouse()
+int Engine::getWindowWidth()
+{
+	return this->windowWidth;
+}
+
+int Engine::getWindowHeight()
+{
+	return this->windowHeight;
+}
+
+bool Engine::shouldMoveTargetCam()
 {
 	return !this->mouseData.currentModeFlag;
 }

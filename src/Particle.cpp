@@ -17,8 +17,8 @@ void Particle::integrate(float time)
 		this->position.y = 0.0F;
 
 //	update velocity
-	this->velocity = (this->velocity + (time * this->acceleration));
 	this->velocity = powf(this->damping, time) * this->velocity;
+	this->velocity = (this->velocity + (time * this->acceleration));
 //	clear forces
 	this->clearForces();
 }
@@ -33,7 +33,7 @@ bool Particle::hasInfiniteMass()
 
 void Particle::addForce(glm::vec3 &force)
 {
-	this->sumForces += force;
+	this->sumForces = sumForces + force;
 }
 
 void Particle::setPosition(const glm::vec3 &position)

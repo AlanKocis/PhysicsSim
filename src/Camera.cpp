@@ -131,3 +131,8 @@ void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const floa
 	this->updateVectors();
 
 }
+
+glm::vec3 &Camera::getWorldPos()
+{
+	return this->positionVector;
+}
