@@ -13,6 +13,8 @@ Cube::Cube(const glm::vec3 &color, const float &posX, const float &posY, const f
 
 void Cube::updatePhysicsComponent(float time)
 {
+	if (!this->simulatePhysics)
+		return;
 	this->physicsComponent.integrate(time);
 	this->transform.pos = this->physicsComponent.getPosition();
 	this->transform.updateWorldMatrix();
@@ -59,4 +61,9 @@ Transform & Cube::getTransform()
 void Cube::addForce(glm::vec3 &force)
 {
 	this->physicsComponent.addForce(force);
+}
+
+void Cube::setPhysics(bool d)
+{
+	this->simulatePhysics = d;
 }

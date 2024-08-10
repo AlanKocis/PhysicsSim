@@ -127,6 +127,8 @@ void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const floa
 		this->positionVector.y -= SPEED;
 		break;
 	}
+	if (this->positionVector.y < 0.0F)
+		this->positionVector.y = 0.0F;
 
 	this->updateVectors();
 

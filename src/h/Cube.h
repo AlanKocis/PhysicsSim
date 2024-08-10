@@ -11,6 +11,7 @@ class Cube
 {
 private:
 	bool selected;
+	bool simulatePhysics = 0;
 	glm::vec3 colorVector;
 	Transform transform;
 	Particle physicsComponent;
@@ -26,5 +27,6 @@ public:
 	void updateWorldMatrix();
 	Transform &getTransform();
 	void addForce(glm::vec3 &force);
+	void setPhysics(bool d);
 };
 #endif

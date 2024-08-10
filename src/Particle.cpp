@@ -13,8 +13,13 @@ void Particle::integrate(float time)
 
 //	update position
 	this->position = (this->position + (time * this->velocity));
+
+	//FIX this later
 	if (this->position.y <= 0.0F)
+	{
 		this->position.y = 0.0F;
+		this->velocity.y = 0.0F;
+	}
 
 //	update velocity
 	this->velocity = powf(this->damping, time) * this->velocity;

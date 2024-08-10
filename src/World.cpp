@@ -25,14 +25,13 @@ void World::addCamera(bool replaceTarget, const int &camWidth, const int &camHei
 	if (replaceTarget)
 	{
 		targetCamera = &cam;
-		this->numCubes++;
 	}
 }
 
 void World::addCube(const glm::vec3& color, const float &posX, const float &posY, const float &posZ, const float &scaleX, const float &scaleY, const float &scaleZ, const float &rotX, const float &rotY, const float &rotZ)
 {
 	cubeBuffer.emplace_back(Cube(color, posX, posY, posZ, scaleX, scaleY, scaleZ, rotX, rotY, rotZ));
-
+	this->numCubes++;
 }
 
 Camera *World::getTargetCamera()

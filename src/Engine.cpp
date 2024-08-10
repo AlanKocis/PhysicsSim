@@ -68,7 +68,8 @@ Engine::Engine(ENGINE_CONFIG_ID ID)
 	this->firstRun = true;
 	this->keyboardInputFlag = 1;
 	this->resourceManager.loadResources();
-	this->worldRenderTarget = this->loadWorld(FORCE_DEMO);
+//	LOAD WORLD
+	this->worldRenderTarget = this->loadWorld(GRAVITY_DEMO);
 	printf("Finished engine initialization\n");
 }
                                                                        
@@ -92,7 +93,7 @@ World *Engine::loadWorld(const WORLD_TYPE &ID)
 		{
 			for (int z = 0; z < 30; z += 3)
 			{
-				ptr->addCube(glm::vec3(0, 0, 0), (x - 25.0F), 10.0F, (z - 25.0F), 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+				ptr->addCube(glm::vec3(0, 0, 0), (x - 25.0F), 30.0F, (z - 25.0F), 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F);
 
 			}
 		}
@@ -154,62 +155,7 @@ void Engine::updateWindow()
 	}
 }
 
-void Engine::guiObjectList()
-{
-	World *targetWorld = this->worldRenderTarget;
-	if (!targetWorld)
-		return;
-	if (!targetWorld->getTargetCamera())
-		return;
 
-	std::vector<Cube> &targetCubeBuffer = this->worldRenderTarget->getCubeBufferReference();
-	if (targetCubeBuffer.size() <= 0)
-		return;
-
-	static int cubeIndex = 0;
-	ImGui::Begin("cubes", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-
-
-
-	ImGui::TextColored(GUI::WHITE, "Object Type:\tCube");
-	ImGui::TextColored(GUI::WHITE, "Index:      \t%d", cubeIndex);
-	ImGui::Dummy(ImVec2(0.0F, 100.0F));
-
-
-	static glm::vec3 guiForceVec{ 0.0F, 0.0F, 0.0F };
-	Transform &cubeTransform = targetCubeBuffer[cubeIndex].getTransform();
-
-
-
-	ImGui::TextColored(GUI::WHITE, "Apply Force:");
-	ImGui::SameLine();
-	ImGui::InputFloat3("##force", &guiForceVec[0], "%.2f");
-	if (ImGui::Button("Apply", ImVec2(40, 20)))
-	{
-		guiForceVec.x *= this->FPS * 2;
-		guiForceVec.y *= this->FPS * 2;
-		guiForceVec.z *= this->FPS * 2;
-		targetCubeBuffer[cubeIndex].addForce(guiForceVec);
-		guiForceVec = glm::vec3(0, 0, 0);
-	}
-	if (ImGui::Button("##left", ImVec2(20, 20)))
-	{
-		if (cubeIndex > 0)
-			cubeIndex--;
-	}
-
-	ImGui::SameLine();	
-	if (ImGui::Button("##right", ImVec2(20, 20)))
-	{
-		if ((cubeIndex + 1) < targetWorld->getNumCubes())
-			cubeIndex++;
-		
-	}
-
-	ImGui::TextColored(ImVec4(1, 1, 1, 1), "%d", cubeIndex);
-
-	ImGui::End();
-}
 
 void Engine::updateGUI()
 {
@@ -247,11 +193,6 @@ void Engine::updateGUI()
 
 	ImGui::End();
 
-	int height = getWindowHeight();
-	ImGui::SetNextWindowPos(ImVec2(0, 175));
-	ImGui::SetNextWindowSize(ImVec2(250, 300));
-	ImGui::StyleColorsDark();
-
 //	Had to wrap this in a function so I could do a safe return; on nullptr.
 	this->guiObjectList();
 
@@ -265,14 +206,85 @@ void Engine::updateGUI()
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
+}
+
+void Engine::guiObjectList()
+{
+	if (this->shouldMoveTargetCam())
+		return;
+	World *targetWorld = this->worldRenderTarget;
+	if (!targetWorld)
+		return;
+	if (!targetWorld->getTargetCamera())
+		return;
+
+	std::vector<Cube> &targetCubeBuffer = this->worldRenderTarget->getCubeBufferReference();
+	if (targetCubeBuffer.size() <= 0)
+		return;
+
+
+	ImGui::SetNextWindowPos(ImVec2(0, 200));
+	ImGui::SetNextWindowSize(ImVec2(250, 600));
+	ImGui::StyleColorsDark();
+	ImGui::Begin("Physics", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+	ImGui::TextColored(GUI::WHITE, "Physics");
+	if (ImGui::Button("Start Simulation", ImVec2(200, 20)))
+	{
+		for (Cube &cube : targetCubeBuffer)
+		{
+			cube.setPhysics(true);
+		}
+	}
+	if (ImGui::Button("Pause Simulation", ImVec2(200, 20)))
+	{
+		for (Cube &cube : targetCubeBuffer)
+		{
+			cube.setPhysics(false);
+		}
+	}
+
+
+	static int cubeIndex = 0;
+	int height = getWindowHeight();
+	
+	ImGui::SeparatorText("Obj Debug");
+	ImGui::TextColored(GUI::WHITE, "Object Type:\tCube");
+	ImGui::TextColored(GUI::WHITE, "Index:      \t%d", cubeIndex);
+	if (ImGui::Button("##left", ImVec2(20, 20)))
+	{
+		if (cubeIndex > 0)
+			cubeIndex--;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("##right", ImVec2(20, 20)))
+	{
+		if ((cubeIndex + 1) <= targetWorld->getNumCubes())
+			cubeIndex++;
+
+	}
+	ImGui::Dummy(ImVec2(0.0F, 100.0F));
+
+
+	static glm::vec3 guiForceVec{ 0.0F, 0.0F, 0.0F };
+	Transform &cubeTransform = targetCubeBuffer[cubeIndex].getTransform();
 
 
 
+	ImGui::TextColored(GUI::WHITE, "Apply Force:");
+	ImGui::SameLine();
+	ImGui::InputFloat3("##force", &guiForceVec[0], "%.2f");
+	if (ImGui::Button("Apply", ImVec2(40, 20)))
+	{
+		guiForceVec.x *= this->FPS * 2;
+		guiForceVec.y *= this->FPS * 2;
+		guiForceVec.z *= this->FPS * 2;
+		targetCubeBuffer[cubeIndex].addForce(guiForceVec);
+		guiForceVec = glm::vec3(0, 0, 0);
+	}
 
 
-
-
-
+	ImGui::End();
 }
 
 void Engine::processKeyboardInput()
