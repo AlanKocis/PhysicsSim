@@ -128,9 +128,15 @@ void Engine::updateFrame()
 	this->lastFrameTime = T;
 	this->FPS = 1.0f / deltaTime;
 
+
+
+	auto targetBuff = this->worldRenderTarget->getCubeBufferReference();
+	glm::vec3 force(0, 10000, 0);
 	//update Positions
-	if (this->worldRenderTarget)
-		this->worldRenderTarget->update(this->deltaTime);
+	if (((int)glfwGetTime() % 10) == 0)
+	this->worldRenderTarget->getCubeBufferReference().at(0).addForce(glm::vec3(0, 100, 0));
+	this->worldRenderTarget->update(this->deltaTime);
+
 
 
 

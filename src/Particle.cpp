@@ -14,8 +14,8 @@ void Particle::integrate(float time)
 //	update position
 	this->position = (this->position + (time * this->velocity));
 
-	//FIX this later
-	if (this->position.y <= 0.0F)
+	//FIX this later. EVIL CODE
+	if (this->position.y < 0.0F)
 	{
 		this->position.y = 0.0F;
 		this->velocity.y = 0.0F;
@@ -36,7 +36,7 @@ bool Particle::hasInfiniteMass()
 		return false;
 }
 
-void Particle::addForce(glm::vec3 &force)
+void Particle::addForce(const glm::vec3 &force)
 {
 	this->sumForces = sumForces + force;
 }

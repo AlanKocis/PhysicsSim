@@ -20,7 +20,7 @@ protected:
 public:
 	void integrate(float time);
 	bool hasInfiniteMass();
-	void addForce(glm::vec3 &force);
+	void addForce(const glm::vec3 &force);
 	void setPosition(const glm::vec3 &position);
 	glm::vec3 getPosition();
 	void setMass(const float &mass);

@@ -8,7 +8,7 @@ Cube::Cube(const glm::vec3 &color, const float &posX, const float &posY, const f
 	this->transform = Transform(posX, posY, posZ, scaleX, scaleY, scaleZ, rotX, rotY, rotZ);
 	this->physicsComponent.setMass(10);
 	this->physicsComponent.setPosition(this->transform.pos);
-	this->physicsComponent.setDamping(0.99F);
+	this->physicsComponent.setDamping(0.7F);
 }
 
 void Cube::updatePhysicsComponent(float time)
@@ -58,7 +58,7 @@ Transform & Cube::getTransform()
 	return this->transform;
 }
 
-void Cube::addForce(glm::vec3 &force)
+void Cube::addForce(const glm::vec3 &force)
 {
 	this->physicsComponent.addForce(force);
 }

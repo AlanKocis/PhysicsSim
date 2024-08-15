@@ -26,7 +26,7 @@ public:
 	void setMass(const float &m);
 	void updateWorldMatrix();
 	Transform &getTransform();
-	void addForce(glm::vec3 &force);
+	void addForce(const glm::vec3 &force);
 	void setPhysics(bool d);
 };
 #endif

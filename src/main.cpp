@@ -6,7 +6,7 @@ int main()
 
 	while (core.isRunning())
 	{
-		core.updateFrame();
+		core.updateFrame();	//draw
 		core.updateGUI();
 		core.updateWindow();
 	}
