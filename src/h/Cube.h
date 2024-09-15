@@ -21,6 +21,8 @@ public:
 	void updatePhysicsComponent(float time);
 	glm::mat4& getWorldMatrix();
 	bool isSelected();
+	void setSelected(const bool &b);
+	Particle &getPhysicsComponent();
 	void setPos(const glm::vec3 &pos);
 	void setRotation(const glm::vec3 rot);
 	void setMass(const float &m);

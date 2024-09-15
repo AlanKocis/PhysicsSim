@@ -6,24 +6,31 @@ void Particle::integrate(float time)
 		return;
 	assert(time > 0.0F);
 
-//	get acceleration from forces.
 	this->acceleration = this->sumForces * this->getInverseMass();
 	this->acceleration += glm::vec3(0.0F, -10.0F, 0.0F);
 
-
-//	update position
+	//	update position
 	this->position = (this->position + (time * this->velocity));
-
-	//FIX this later. EVIL CODE
-	if (this->position.y < 0.0F)
-	{
-		this->position.y = 0.0F;
-		this->velocity.y = 0.0F;
-	}
-
-//	update velocity
+	//	update velocity
 	this->velocity = powf(this->damping, time) * this->velocity;
 	this->velocity = (this->velocity + (time * this->acceleration));
+
+
+
+	//FIX this later. EVIL CODE
+	if (this->position.y <= 0.0F)
+	{
+		this->position.y = 0.0F;
+	}
+
+
+
+
+	//	get acceleration from forces.
+
+
+
+
 //	clear forces
 	this->clearForces();
 }
@@ -49,6 +56,16 @@ void Particle::setPosition(const glm::vec3 &position)
 glm::vec3 Particle::getPosition()
 {
 	return this->position;
+}
+
+glm::vec3 Particle::getVelocity()
+{
+	return this->velocity;
+}
+
+glm::vec3 Particle::getAcceleration()
+{
+	return this->acceleration;
 }
 
 void Particle::setMass(const float& mass)

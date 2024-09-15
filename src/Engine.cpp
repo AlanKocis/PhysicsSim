@@ -128,8 +128,6 @@ void Engine::updateFrame()
 	this->lastFrameTime = T;
 	this->FPS = 1.0f / deltaTime;
 
-
-
 	auto targetBuff = this->worldRenderTarget->getCubeBufferReference();
 	glm::vec3 force(0, 10000, 0);
 	//update Positions
@@ -143,12 +141,11 @@ void Engine::updateFrame()
 
 	processKeyboardInput();
 	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	if (worldRenderTarget)
 		Renderer::DrawWorld(*worldRenderTarget);
 	this->firstRun = false;
 }
-
 
 void Engine::updateWindow()
 {
@@ -251,22 +248,49 @@ void Engine::guiObjectList()
 
 
 	static int cubeIndex = 0;
+	Transform &t = targetCubeBuffer.at(cubeIndex).getTransform();
+	Particle &p = targetCubeBuffer.at(cubeIndex).getPhysicsComponent();
+	glm::vec3 v = p.getVelocity();
+	glm::vec3 a = p.getAcceleration();
 	int height = getWindowHeight();
 	
 	ImGui::SeparatorText("Obj Debug");
 	ImGui::TextColored(GUI::WHITE, "Object Type:\tCube");
+	//ImGui::Dummy(ImVec2(0.0F, 100.0F));
+	ImGui::TextColored(GUI::WHITE, "Position\t\t%.2f, %.2f, %.2f", t.pos.x, t.pos.y, t.pos.z);
+	ImGui::TextColored(GUI::WHITE, "Velocity\t\t%.2f, %.2f, %.2f", v.x, v.y, v.z);
+	ImGui::TextColored(GUI::WHITE, "Acceleration\t%.2f, %.2f, %.2f", a.x, a.y, a.z);
+
+
+
+	targetCubeBuffer.at(cubeIndex).setSelected(true);
+
 	ImGui::TextColored(GUI::WHITE, "Index:      \t%d", cubeIndex);
 	if (ImGui::Button("##left", ImVec2(20, 20)))
 	{
 		if (cubeIndex > 0)
+		{
+			targetCubeBuffer.at(cubeIndex).setSelected(false);
+
+			//disable highlight
 			cubeIndex--;
+			targetCubeBuffer.at(cubeIndex).setSelected(true);
+
+		}
 	}
 
 	ImGui::SameLine();
 	if (ImGui::Button("##right", ImVec2(20, 20)))
 	{
-		if ((cubeIndex + 1) <= targetWorld->getNumCubes())
+		if ((cubeIndex + 1) < targetWorld->getNumCubes())
+		{
+			targetCubeBuffer.at(cubeIndex).setSelected(false);
+
+			//disable highlight
 			cubeIndex++;
+			targetCubeBuffer.at(cubeIndex).setSelected(true);
+
+		}
 
 	}
 	ImGui::Dummy(ImVec2(0.0F, 100.0F));

@@ -4,6 +4,8 @@ void ResourceManager::loadResources()
 {
 	this->engineMeshes[CUBE_MESH_ID] = Mesh(CUBE_MESH_ID);
 	this->engineShaders[CUBE_SHADER_ID] = Shader("cubevertex.glsl", "cubefragment.glsl");
+	this->engineShaders[CUBE_OUTLINE_ID] = Shader("cubevertex.glsl", "cubeoutlinefragment.glsl");
+
 	printf("Initialized resources\n");
 }
 

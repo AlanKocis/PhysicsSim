@@ -30,6 +30,16 @@ bool Cube::isSelected()
 	return this->selected;
 }
 
+void Cube::setSelected(const bool &b)
+{
+	this->selected = b;
+}
+
+Particle &Cube::getPhysicsComponent()
+{
+	return this->physicsComponent;
+}
+
 void Cube::setPos(const glm::vec3 &pos)
 {
 	this->transform.pos.x = pos.x;

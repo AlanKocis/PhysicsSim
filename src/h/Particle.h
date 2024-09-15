@@ -23,6 +23,8 @@ public:
 	void addForce(const glm::vec3 &force);
 	void setPosition(const glm::vec3 &position);
 	glm::vec3 getPosition();
+	glm::vec3 getVelocity();
+	glm::vec3 getAcceleration();
 	void setMass(const float &mass);
 	float getInverseMass();
 	float getMass();
