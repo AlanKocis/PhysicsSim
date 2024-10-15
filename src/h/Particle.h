@@ -16,7 +16,7 @@ protected:
 	glm::vec3 acceleration{ 0.0F, 0.0F, 0.0F };
 	glm::vec3 sumForces{ 0.0F, 0.0F, 0.0F };
 	float damping{ 0.0F };
-	float inverseMass{ 0.0F };
+	float inverseMass{ 0.0F };	//representation of 1 divided by mass. F=ma, so a = F/m. if mass is 0 bad things happen, BUT a = F * inverseMass <= same thing 
 public:
 	void integrate(float time);
 	bool hasInfiniteMass();
@@ -26,8 +26,8 @@ public:
 	glm::vec3 getVelocity();
 	glm::vec3 getAcceleration();
 	void setMass(const float &mass);
-	float getInverseMass();
-	float getMass();
+	float getInverseMass();	
+	float getMass();		// !!CHECK WITH Particle::hasInfiniteMass() BEFORE CALLING!!
 	void setDamping(const float &d);
 	float getDamping();
 private:

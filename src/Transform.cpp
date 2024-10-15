@@ -10,9 +10,9 @@ Transform::Transform(const float &posX, const float &posY, const float &posZ, co
 	scale.y = scaleY;
 	scale.z = scaleZ;
 
-	rotation.x = rotX;
-	rotation.y = rotY;
-	rotation.z = rotZ;
+	orientation = glm::quat(glm::vec3(rotX, rotY, rotZ));
+	glm::normalize(orientation);
+
 	updateWorldMatrix();
 }
 
@@ -20,8 +20,8 @@ void Transform::updateWorldMatrix()
 {
 	worldMatrix = glm::mat4(1.0f);
 	worldMatrix = glm::translate(worldMatrix, glm::vec3(pos.x, pos.y, pos.z));
-	worldMatrix = glm::rotate(worldMatrix, rotation.x, glm::vec3(1, 0, 0));
-	worldMatrix = glm::rotate(worldMatrix, rotation.y, glm::vec3(0, 1, 0));
-	worldMatrix = glm::rotate(worldMatrix, rotation.z, glm::vec3(0, 0, 1));
+	glm::mat4 rotation = glm::mat4(orientation);
+
+	worldMatrix *= rotation;
 	worldMatrix = glm::scale(worldMatrix, scale);
 }

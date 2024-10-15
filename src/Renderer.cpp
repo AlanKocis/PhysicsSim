@@ -27,7 +27,7 @@ void Renderer::DrawWorld(World &world)
 
 	for (Cube& cube : world.getCubeBufferReference())
 	{
-		if (cube.isSelected())
+		if (cube.isSelected() && !engineInstance.shouldMoveTargetCam())
 		{
 			glStencilFunc(GL_ALWAYS, 1, 0xFF);
 			glStencilMask(0xFF);
@@ -37,7 +37,7 @@ void Renderer::DrawWorld(World &world)
 		glDrawElements(GL_TRIANGLES, cubeMesh.getIndexBufferSize() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
 
-		if (cube.isSelected())
+		if (cube.isSelected() && !engineInstance.shouldMoveTargetCam())
 		{
 			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 			glStencilMask(0x00);

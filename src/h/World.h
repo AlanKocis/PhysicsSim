@@ -9,8 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-
-
 enum WORLD_TYPE
 {
 	DEFAULT,
@@ -33,7 +31,7 @@ public:
 	void addCamera(bool replaceTarget, const int &camWidth, const int &camHeight, const Camera &camera);
 	void addCube(const glm::vec3 &color, const float &posX, const float &posY, const float &posZ, const float &scaleX, const float &scaleY, const float &scaleZ, const float &rotX, const float &rotY, const float &rotZ);
 	Camera *getTargetCamera();
-	std::vector<Cube> &getCubeBufferReference();
+	std::vector<Cube> &getCubeBufferReference();		//not safe at all if u think about it for more than 2 seconds. Dont use or replace with some type of .at() function that does error handling for me.
 	int getNumCubes();
 };
 

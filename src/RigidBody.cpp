@@ -1,6 +1,6 @@
-#include <h/Particle.h>
-
-void Particle::integrate(float time)
+#include <h/RigidBody.h>
+/*
+void RigidBody::integrate(float time)
 {
 	if (this->inverseMass <= 0.0F)
 		return;
@@ -16,9 +16,15 @@ void Particle::integrate(float time)
 		//this->addForce(glm::vec3(0, 1000, 0));
 	}
 
-	this->acceleration = this->sumForces * this->getInverseMass();
+	glm::vec3 lastFrameAcceleration = this->acceleration;
+
+	lastFrameAcceleration += (this->sumForces * this->inverseMass);
+
+	//gravity
 	if (this->position.y > 0.0f)
 		this->acceleration += glm::vec3(0.0F, -10.0F, 0.0F);
+
+
 
 	//	update position
 	this->position = (this->position + (time * this->velocity));
@@ -26,13 +32,13 @@ void Particle::integrate(float time)
 	this->velocity = powf(this->damping, time) * this->velocity;
 	this->velocity = (this->velocity + (time * this->acceleration));
 
-//	clear forces
+	//	clear forces
 	this->clearForces();
 }
 
 
 
-bool Particle::hasInfiniteMass()
+bool RigidBody::hasInfiniteMass()
 {
 	if (this->inverseMass <= 0.0F)
 		return true;
@@ -40,32 +46,42 @@ bool Particle::hasInfiniteMass()
 		return false;
 }
 
-void Particle::addForce(const glm::vec3 &force)
+void RigidBody::addForceAtCenter(const glm::vec3 &force)
 {
 	this->sumForces = sumForces + force;
 }
 
-void Particle::setPosition(const glm::vec3 &position)
+void RigidBody::addForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &point)
+{
+}
+
+void RigidBody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point)
+{
+}
+
+
+
+void RigidBody::setPosition(const glm::vec3 &position)
 {
 	this->position = position;
 }
 
-glm::vec3 Particle::getPosition()
+glm::vec3 RigidBody::getPosition()
 {
 	return this->position;
 }
 
-glm::vec3 Particle::getVelocity()
+glm::vec3 RigidBody::getVelocity()
 {
 	return this->velocity;
 }
 
-glm::vec3 Particle::getAcceleration()
+glm::vec3 RigidBody::getAcceleration()
 {
 	return this->acceleration;
 }
 
-void Particle::setMass(const float& mass)
+void RigidBody::setMass(const float &mass)
 {
 	if (mass <= 0.0F)
 	{
@@ -75,30 +91,33 @@ void Particle::setMass(const float& mass)
 	this->inverseMass = (1.0F / mass);
 }
 
-float Particle::getInverseMass()
+float RigidBody::getInverseMass()
 {
 	return this->inverseMass;
 }
 
 // !!CHECK WITH Particle::hasInfiniteMass() BEFORE CALLING!!
-float Particle::getMass()
+float RigidBody::getMass()
 {
 	return (1.0F / this->inverseMass);
 }
 
-void Particle::setDamping(const float &d)
+void RigidBody::setDamping(const float &d)
 {
 	this->damping = d;
 }
 
-float Particle::getDamping()
+float RigidBody::getDamping()
 {
 	return this->damping;
 }
 
 
 
-void Particle::clearForces()
+void RigidBody::clearForces()
 {
 	this->sumForces = glm::vec3(0.0f, 0.0f, 0.0f);
 }
+
+
+*/

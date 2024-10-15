@@ -10,12 +10,18 @@ World::World()
 
 void World::update(float time)
 {
+	static float lol = 0;
+
+	cubeBuffer[0].setRotation(glm::vec3(lol, 0, 0));
+
 	for (Cube &cube : this->cubeBuffer)
 	{
 		cube.updatePhysicsComponent(time);
 	}
+	
 
 
+	lol += 0.001f;
 
 }
 

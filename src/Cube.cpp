@@ -50,7 +50,9 @@ void Cube::setPos(const glm::vec3 &pos)
 
 void Cube::setRotation(const glm::vec3 rot)
 {
-	this->transform.rotation = rot;
+	this->transform.orientation = glm::quat(rot);
+	glm::normalize(transform.orientation);
+	this->transform.updateWorldMatrix();
 }
 
 void Cube::setMass(const float & m)

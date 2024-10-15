@@ -9,7 +9,7 @@ private:
 	Mesh engineMeshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader engineShaders[SHADER_INDEX_ID::NUM_SHADERS];
 public:
-	ResourceManager() = default;
+	ResourceManager() = default;		//nothingburger. call loadResources()
 	void loadResources();
 	Mesh *getMeshBufferPtr();
 	Shader *getShaderBufferPtr();

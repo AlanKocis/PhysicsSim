@@ -137,11 +137,6 @@ char* _readfile(FILE* f)
     char* buffer = (char *)malloc(ulength + 1);
 
     // Allocation failed? Read incomplete?
-    //if (buffer == NULL || fread(buffer, 1, ulength, f) != ulength) {
-    //    free(buffer);
-    //    return NULL;
-    //}
-
     if (buffer == NULL)
     {
         free(buffer);
