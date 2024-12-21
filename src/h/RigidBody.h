@@ -17,9 +17,6 @@ protected:
 	glm::vec3 sum_torques{ 0.0F, 0.0F, 0.0F };
 	glm::mat3 inverse_inertia_tensor;
 	Transform transform;
-private:
-
-
 public:
 	void integrate(float time);
 	bool hasInfiniteMass();

@@ -130,20 +130,16 @@ void Engine::updateFrame()
 
 	auto targetBuff = this->worldRenderTarget->getCubeBufferReference();
 	glm::vec3 force(0, 10000, 0);
+
 	//update Positions
-	if (((int)glfwGetTime() % 10) == 0)
-	this->worldRenderTarget->getCubeBufferReference().at(0).addForce(glm::vec3(0, 100, 0));
 	this->worldRenderTarget->update(this->deltaTime);
-
-
-
-
 
 	processKeyboardInput();
 	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	if (worldRenderTarget)
 		Renderer::DrawWorld(*worldRenderTarget);
+
 	this->firstRun = false;
 }
 
@@ -176,9 +172,6 @@ void Engine::updateGUI()
 
 	ImGui::TextColored(GUI::WHITE, "%.10fms", this->deltaTime);
 	ImGui::TextColored(GUI::WHITE, "%.3ffps", this->FPS);
-
-
-
 
 
 	ImGui::TextColored(GUI::WHITE, "WASD -\t");
@@ -356,7 +349,6 @@ void Engine::processKeyboardInput()
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 			targetCam->processCameraMovement(DOWN, deltaTime);
 	}
-
 }
 
 double Engine::getLastMousePos(const MOUSE_POS_INDEX_ID& index)

@@ -9,7 +9,7 @@
 
 struct Transform
 {
-	glm::vec3 pos;
+	glm::vec3 pos;	//world pos coordinates
 	glm::vec3 scale;
 	glm::quat orientation;
 	glm::mat4 worldMatrix;

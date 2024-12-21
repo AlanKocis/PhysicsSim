@@ -16,12 +16,17 @@ void World::update(float time)
 
 	for (Cube &cube : this->cubeBuffer)
 	{
+		cube.setRotation(glm::vec3(0, lol / 10, 0));
 		cube.updatePhysicsComponent(time);
+		if (cube.getTransform().pos.y <= 1.0F)
+		{
+			cube.addForce(glm::vec3(0, 3000000 * time, 0));
+		}
 	}
 	
 
 
-	lol += 0.001f;
+	lol += 3.0f * time;
 
 }
 

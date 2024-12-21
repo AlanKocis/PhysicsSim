@@ -2,16 +2,16 @@
 
 int main()
 {
-	Engine& core = Engine::instance();
+	Engine& engine = Engine::instance();
 
-	while (core.isRunning())
+	while (engine.isRunning())
 	{
-		core.updateFrame();	//draw
-		core.updateGUI();
-		core.updateWindow();
+		engine.updateFrame();	//draw
+		engine.updateGUI();
+		engine.updateWindow();
 	}
-	 
+	
 
-	core.End();
+	engine.End();
 	return 0;
 } 

@@ -20,11 +20,9 @@
 #include <h/Particle.h>
 #include <h/ForceGen.h>
 
-
 #define INIT_WINDOW_WIDTH 1600
 #define INIT_WINDOW_HEIGHT 900
 #define INIT_MOUSE_MODE GLFW_CURSOR_DISABLED
-
 
 void _glfwFramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void _glfwCursorPosCallback(GLFWwindow *window, double xpos, double ypos);

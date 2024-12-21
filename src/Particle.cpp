@@ -6,16 +6,6 @@ void Particle::integrate(float time)
 		return;
 	assert(time > 0.0F);
 
-
-	//FIX this later. EVIL CODE
-	if (this->position.y < 0.0F)
-	{
-		this->position.y = 0.0F;
-		this->velocity.y = 0.0F;
-
-		//this->addForce(glm::vec3(0, 1000, 0));
-	}
-
 	this->acceleration = this->sumForces * this->getInverseMass();
 	if (this->position.y > 0.0f)
 		this->acceleration += glm::vec3(0.0F, -10.0F, 0.0F);
