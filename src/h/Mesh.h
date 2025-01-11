@@ -1,5 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
+
 #include <glad.h>
 #include <vector>
 #include <stdint.h>
@@ -9,6 +10,7 @@
 enum MESH_INDEX_ID
 {
 	CUBE_MESH_ID,
+	PLANE_MESH_ID,
 	NUM_MESHES
 };
 
@@ -19,23 +21,31 @@ struct Vertex
 	glm::vec2 uv;
 };
 
-class Mesh
+//
+//
+
+class GLmesh
 {
 private:
-	GLuint vao, vbo, ebo;
 	Vertex *vertices;
-	GLuint *indices;
-	size_t vertexBufferSize, indexBufferSize;
+	unsigned int *indices;
+	GLuint vao, vbo, ebo;
+	size_t vertexBufferSize;
+	size_t indexBufferSize;
+//
+	void AllocateCubeVertices();
+	//void AllocatePlaneVertices();
 public:
-	Mesh();
-	Mesh(MESH_INDEX_ID ID);
+	GLmesh();
+	GLmesh(MESH_INDEX_ID ID);
+	~GLmesh();
 	void setVertexBufferSize(size_t size);
 	void setIndexBufferSize(size_t size);
-	GLuint getVAO();
+	GLuint getVAO() const;
+	GLuint getEBO() const;
 	void freeBuffers();
 	size_t getVertexBufferSize();
 	size_t getIndexBufferSize();
 };
 
-void copyCubeMeshData(Mesh *mesh, Vertex *vertices, GLuint *indices);
 #endif

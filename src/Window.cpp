@@ -1,0 +1,145 @@
+#include <h/Window.h>
+
+GLFW::Window::Window()
+{
+	window_ptr = nullptr;
+	width = DEFAULT_WINDOW_WIDTH;
+	height = DEFAULT_WINDOW_HEIGHT;
+	mouse_data.x = width / 2.0;
+	mouse_data.y = height / 2.0;
+	mouse_data.last_x = width / 2.0;
+	mouse_data.last_y = height / 2.0;
+}
+
+GLFW::Window::~Window()
+{
+	DestroyWindow();
+}
+
+void GLFW::Window::Update()
+{
+	SwapMouseFrameData(GetMouseXPos(), GetMouseYPos());
+	glfwSwapBuffers(window_ptr);
+	glfwPollEvents();
+}
+
+int GLFW::Window::ShouldClose() const
+{
+	return glfwWindowShouldClose(window_ptr);
+}
+
+void GLFW::Window::DestroyWindow()
+{
+	glfwDestroyWindow(window_ptr);
+
+}
+
+void GLFW::Window::CreateWindow()
+{
+	if (window_ptr)
+		return;
+
+	window_ptr = glfwCreateWindow(width, height, "Window", NULL, NULL);
+	glfwMakeContextCurrent(window_ptr);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		printf("Critical error in Window.cpp :: GLAD failed\n");
+		exit(-1);
+	}
+	glfwSetFramebufferSizeCallback(window_ptr, &(GLFW::Window::FrameBufferSizeCallback));
+	glfwSetCursorPosCallback(window_ptr, &(CursorPosCallback));
+	glfwSetMouseButtonCallback(window_ptr, &(MouseButtonCallback));
+	glfwSetWindowUserPointer(window_ptr, reinterpret_cast<void *>(this));
+}
+
+void GLFW::Window::SwapMouseFrameData(double x, double y)
+{
+	mouse_data.last_x = mouse_data.x;
+	mouse_data.last_y = mouse_data.y;
+	mouse_data.x = x;
+	mouse_data.y = y;
+}
+
+void GLFW::Window::SwapSizeFrameData(int width, int height)
+{
+	this->width = width;
+	this->height = height;
+}
+
+const Mouse &GLFW::Window::GetMouseData()
+{
+	return mouse_data;
+}
+
+void GLFW::Window::FrameBufferSizeCallback(GLFWwindow *window, int width, int height)
+{
+//	I hate this, but it is what you are supposed to do lol. This function must be static to bind it as a callback.
+	GLFW::Window *user_ptr = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+	if (user_ptr)
+		user_ptr->SwapSizeFrameData(width, height);
+}
+
+void GLFW::Window::CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
+{
+	GLFW::Window *user_ptr = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+	if (user_ptr)
+	{
+
+		user_ptr->SwapMouseFrameData(xpos, ypos);
+	}
+}
+
+void GLFW::Window::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+}
+
+void GLFW::Window::Init()
+{
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	if (!glfwInit())
+	{
+		printf("Error::failed to initialized GLFW\n");
+	}
+	printf("Initialized GLFW\n");
+}
+
+void GLFW::Window::Terminate()
+{
+	glfwTerminate();
+}
+
+double GLFW::Window::GetTime()
+{
+	return	glfwGetTime();
+}
+
+bool GLFW::Window::IsAlive() const
+{
+	if (!window_ptr)
+		return false;
+	else
+		return true;
+}
+
+bool GLFW::Window::IsFirstMouse()
+{
+	return first_mouse;
+}
+
+void GLFW::Window::SetFirstMouse(int val)
+{
+	first_mouse = val;
+}
+
+double GLFW::Window::GetMouseXOffset() const
+{
+	return (mouse_data.x - mouse_data.last_x);
+}
+
+double GLFW::Window::GetMouseYOffset() const
+{
+	return (mouse_data.last_y - mouse_data.y);
+}

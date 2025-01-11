@@ -1,22 +1,21 @@
 #include <h/Mesh.h>
 
-void copyCubeMeshData(Mesh *mesh, Vertex *vertices, GLuint *indices)
+void GLmesh::AllocateCubeVertices()
 {
 	float x = 1.0f, y = 1.0f, z = 1.0f;
-
-	std::vector<Vertex> cubeVertices{
+	Vertex cubeVertices[24] = {
 		//front face
 		//pos			normal				tex
-		{glm::vec3(-x / 2, -y / 2, z / 2), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(x / 2, -y / 2, z / 2), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-x / 2.0f, -y / 2.0f, z / 2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(x / 2.0f, -y / 2.0f, z / 2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
 		{glm::vec3(x / 2, y / 2, z / 2), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
 		{glm::vec3(-x / 2, y / 2, z / 2), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
 
 		//back face
-		{glm::vec3(-x / 2, -y / 2, -z / 2), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(x / 2, -y / 2, -z / 2), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(x / 2, y / 2, -z / 2), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-x / 2, y / 2, -z / 2), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-x / 2.0f, -y / 2.0f, -z / 2.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(x / 2.0f, -y / 2.0f, -z / 2.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(x / 2.0f, y / 2.0f, -z / 2.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-x / 2.0f, y / 2.0f, -z / 2.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
 
 		//left face
 		{glm::vec3(-x / 2, -y / 2, -z / 2), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
@@ -41,7 +40,6 @@ void copyCubeMeshData(Mesh *mesh, Vertex *vertices, GLuint *indices)
 		{glm::vec3(x / 2, -y / 2, -z / 2), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
 		{glm::vec3(x / 2, -y / 2, z / 2), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
 		{glm::vec3(-x / 2, -y / 2, z / 2), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
-
 	};
 
 	GLuint cubeIndices[36] = {
@@ -64,13 +62,16 @@ void copyCubeMeshData(Mesh *mesh, Vertex *vertices, GLuint *indices)
 		22, 23, 20,
 	};
 
-	memcpy(vertices, cubeVertices.data(), sizeof(Vertex) * 24);
+	vertices = new Vertex[24];
+	indices = new unsigned int[36];
+	memcpy(vertices, cubeVertices, sizeof(cubeVertices));
 	memcpy(indices, cubeIndices, sizeof(cubeIndices));
-	mesh->setVertexBufferSize(sizeof(Vertex) * 24);
-	mesh->setIndexBufferSize(sizeof(cubeIndices));
+	
+	vertexBufferSize = sizeof(cubeVertices);
+	indexBufferSize = sizeof(cubeIndices);
 }
 
-Mesh::Mesh()
+GLmesh::GLmesh()
 {
 	vao = vbo = ebo = 0;
 	vertexBufferSize = indexBufferSize = 0;
@@ -78,23 +79,25 @@ Mesh::Mesh()
 	indices = nullptr;
 }
 
-Mesh::Mesh(MESH_INDEX_ID ID)
+GLmesh::GLmesh(MESH_INDEX_ID ID)
 {
 	vertexBufferSize = 0;
 	indexBufferSize = 0;
 	vertices = nullptr;
 	indices = nullptr;
+
+
 	switch (ID)
 	{
 	case CUBE_MESH_ID:
-		vertices = new Vertex[24];
-		indices = new GLuint[36];
-		copyCubeMeshData(this, vertices, indices);
+		this->AllocateCubeVertices();
 		break;
 	}
 	
+
 	if ((vertices != nullptr) && (indices != nullptr) && (vertexBufferSize != 0) && (indexBufferSize != 0))
 	{
+
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
 		glGenBuffers(1, &vbo);
@@ -103,38 +106,52 @@ Mesh::Mesh(MESH_INDEX_ID ID)
 		glGenBuffers(1, &ebo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSize, indices, GL_STATIC_DRAW);
-
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	else
 	{
+		printf("Error in Mesh.cpp :: Failed to allocate mesh vertices\n");
 		vao = 0;
 		vbo = 0;
 		ebo = 0;
 	}
+	printf("Loaded mesh id %d\n", ID);
 }
 
-void Mesh::setVertexBufferSize(size_t size)
+GLmesh::~GLmesh()
+{
+	this->freeBuffers();
+}
+
+void GLmesh::setVertexBufferSize(size_t size)
 {
 	vertexBufferSize = size;
 }
 
-void Mesh::setIndexBufferSize(size_t size)
+void GLmesh::setIndexBufferSize(size_t size)
 {
 	indexBufferSize = size;
 }
 
-GLuint Mesh::getVAO()
+GLuint GLmesh::getVAO() const
 {
 	return vao;
 }
 
+GLuint GLmesh::getEBO() const
+{
+	return ebo;
+}
 
 
-void Mesh::freeBuffers()
+
+void GLmesh::freeBuffers()
 {
 	if (vertices != nullptr)
 		delete[] vertices;
@@ -145,12 +162,12 @@ void Mesh::freeBuffers()
 	indices = nullptr;
 }
 
-size_t Mesh::getVertexBufferSize()
+size_t GLmesh::getVertexBufferSize()
 {
 	return vertexBufferSize;
 }
 
-size_t Mesh::getIndexBufferSize()
+size_t GLmesh::getIndexBufferSize()
 {
 	return indexBufferSize;
 }

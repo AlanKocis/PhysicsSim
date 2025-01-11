@@ -5,33 +5,42 @@
 #include <glm/common.hpp>
 #include <h/Transform.h>
 
-class RigidBody
+struct RigidBody
 {
-protected:
-	int object_type{ 0 };
-	float inverse_mass{ 0.0F };
-	float linear_damping{ 0.0F };
-	glm::vec3 velocity{ 0.0F, 0.0F, 0.0F };
-	glm::vec3 acceleration{ 0.0F, 0.0F, 0.0F };
-	glm::vec3 sum_forces{ 0.0F, 0.0F, 0.0F };
-	glm::vec3 sum_torques{ 0.0F, 0.0F, 0.0F };
-	glm::mat3 inverse_inertia_tensor;
 	Transform transform;
-public:
+	glm::mat3 inverseInertiaTensor;
+	glm::mat3 inverseInertiaTensorWorld;
+	glm::quat orientation;
+	glm::vec3 velocity;
+	glm::vec3 angularVelocity;
+	glm::vec3 acceleration; 
+	glm::vec3 sumForces;
+	glm::vec3 sumTorques;
+	float inverseMass;
+	float linearDamping;
+	float angularDamping;
+	bool shouldRender;
+	RigidBody();
+	//void loadRigidBody(EntityID id);
 	void integrate(float time);
+	//void updateMatrices();
+	void setInertiaTensor();
 	bool hasInfiniteMass();
 	void addForceAtCenter(const glm::vec3 &force);
 	void addForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &point);
 	void addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point);
 	void setPosition(const glm::vec3 &position);
+	void setMass(const float &mass);
+	void setDamping(const float &d);
 	glm::vec3 getPosition();
 	glm::vec3 getVelocity();
 	glm::vec3 getAcceleration();
-	void setMass(const float &mass);
-	float getInverseMass();
 	float getMass();		// !!CHECK WITH Particle::hasInfiniteMass() BEFORE CALLING!!
-	void setDamping(const float &d);
-	float getDamping();
+	float getInverseMass();
+	float getLinearDamping();
+	float getAngularDamping();
+	void clearForces();
+	void clearTorques();
 };
 
 

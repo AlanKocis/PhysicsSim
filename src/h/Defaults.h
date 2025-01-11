@@ -1,0 +1,16 @@
+#ifndef DEFAULTS_H
+#define DEFAULTS_H
+
+#define DEFAULT_WINDOW_WIDTH 1600
+#define DEFAULT_WINDOW_HEIGHT 900
+
+
+
+
+
+
+
+
+
+
+#endif

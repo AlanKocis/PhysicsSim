@@ -1,5 +1,6 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
+
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
 #include <glm/vec3.hpp>
@@ -13,7 +14,7 @@ struct Transform
 	glm::vec3 scale;
 	glm::quat orientation;
 	glm::mat4 worldMatrix;
-	Transform() = default;
+	Transform();
 	Transform(const float &posX, const float &posY, const float &posZ, const float &scaleX, const float &scaleY, const float &scaleZ, const float &rotX, const float &rotY, const float &rotZ);
 	void updateWorldMatrix();
 };

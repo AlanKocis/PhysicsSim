@@ -113,9 +113,50 @@ void Shader::loadShaderProgram(const char* vertex_source, const char* fragment_s
     printf("Compiled Shader Program :: %s :: %s\n", bytes, bytes2);
 }
 
-GLuint &Shader::getID()
+GLuint Shader::getID() const
 {
     return this->ID;
+}
+
+void Shader::UseProgram()
+{
+    glUseProgram(ID);
+}
+
+void Shader::setFloat(const std::string &name, float f)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniform1f(location, f);
+}
+
+void Shader::setInt(const std::string &name, int i)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniform1i(location, i);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &M)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(M));
+}
+
+void Shader::setMat3(const std::string &name, const glm::mat3 &M)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(M));
+}
+
+void Shader::setVec4(const std::string &name, const glm::vec4 &V)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniform4f(location, V.x, V.y, V.z, V.w);
+}
+
+void Shader::setVec3(const std::string &name, const glm::vec3 &V)
+{
+    GLint location = glGetUniformLocation(ID, name.c_str());
+    glUniform3f(location, V.x, V.y, V.z);
 }
 
 char* _readfile(FILE* f)

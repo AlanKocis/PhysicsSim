@@ -6,12 +6,13 @@ void Particle::integrate(float time)
 		return;
 	assert(time > 0.0F);
 
-	this->acceleration = this->sumForces * this->getInverseMass();
-	if (this->position.y > 0.0f)
-		this->acceleration += glm::vec3(0.0F, -10.0F, 0.0F);
-
 	//	update position
 	this->position = (this->position + (time * this->velocity));
+
+	this->acceleration = this->sumForces * this->getInverseMass();
+	if (this->position.y > 0.0f)
+		this->acceleration += glm::vec3(0.0f, -10.0f, 0.0f);
+
 	//	update velocity
 	this->velocity = powf(this->damping, time) * this->velocity;
 	this->velocity = (this->velocity + (time * this->acceleration));

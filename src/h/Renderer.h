@@ -1,15 +1,14 @@
 #ifndef RENDERER_H
 #define RENDERER_H
-#include <h/Engine.h>
-#include <h/World.h>
-#include <glm/gtc/type_ptr.hpp>
 
-namespace Renderer
+#include <glad.h>
+#include <h/Scene.h>
+
+namespace GL
 {
-	void DrawWorld(World& world);
-	void DrawCube(Cube& cube);
-}
-
-
+	void InitRenderer();
+	void StartRenderPass();
+	void DrawScene(const Scene& scene);
+};
 
 #endif

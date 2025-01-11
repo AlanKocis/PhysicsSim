@@ -1,9 +1,11 @@
 #include <h/Camera.h>
 
-Camera::Camera(int &width, int &height)
+Camera::Camera()
 {
-	cameraWidth = width;
-	cameraHeight = height;
+//	from Hobbes.h
+	cameraWidth = DEFAULT_WINDOW_WIDTH;
+	cameraHeight = DEFAULT_WINDOW_HEIGHT;
+//
 	positionVector = DEFAULT_POSITION_VECTOR;
 	forwardVector = DEFAULT_FORWARD_VECTOR;
 	rotationAngles = DEFAULT_ROTATION_ANGLES;
@@ -13,10 +15,10 @@ Camera::Camera(int &width, int &height)
 	firstMouse = true;
 	turnable = true;
 	moveable = true;
+
 	projectionMatrix = glm::perspective(FOV, (cameraWidth / cameraHeight), 0.1f, 100.0f);
 	updateVectors();
 }
-
 
 Camera::Camera(float &posX, float &posY, float &posZ, float &forwardX, float &forwardY, float &forwardZ, int &width, int &height, float &fov, float &sensitivity)
 {
@@ -38,28 +40,33 @@ Camera::Camera(float &posX, float &posY, float &posZ, float &forwardX, float &fo
 
 void Camera::updateVectors()
 {
+	/*
 	forwardVector.x = cos(glm::radians(rotationAngles.y)) * cos(glm::radians(rotationAngles.x));
 	forwardVector.y = sin(glm::radians(rotationAngles.x));
 	forwardVector.z = sin(glm::radians(rotationAngles.y)) * cos(glm::radians(rotationAngles.x));
 	forwardVector = glm::normalize(forwardVector);
-	rightVector = glm::normalize(glm::cross(DEFAULT_UP_VECTOR, -forwardVector));
-	upVector = glm::cross(-forwardVector, rightVector);
+	rightVector = glm::normalize(glm::cross(forwardVector, DEFAULT_UP_VECTOR));
+	upVector = glm::cross(rightVector, forwardVector);
 	viewMatrix = glm::lookAt(positionVector, positionVector + forwardVector, DEFAULT_UP_VECTOR);
+	*/
+
+	// calculate the new Front vector
+	glm::vec3 front;
+	front.x = cos(glm::radians(rotationAngles.y)) * cos(glm::radians(rotationAngles.x));
+	front.y = sin(glm::radians(rotationAngles.x));
+	front.z = sin(glm::radians(rotationAngles.y)) * cos(glm::radians(rotationAngles.x));
+	forwardVector = glm::normalize(front);
+	// also re-calculate the Right and Up vector
+	rightVector = glm::normalize(glm::cross(forwardVector, DEFAULT_UP_VECTOR));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+	upVector = glm::normalize(glm::cross(rightVector, forwardVector));
+	viewMatrix = glm::lookAt(positionVector, positionVector + forwardVector, DEFAULT_UP_VECTOR);
+
 }
 
-void Camera::updateMousePos(const double& xPos, const double& yPos, double lastXPos, double lastYPos)
+void Camera::updateMousePos(const double& x_offset, const double& y_offset)
 {
 	if (!this->isTurnable())
 		return;
-	if (firstMouse)
-	{
-		lastXPos = xPos;
-		lastYPos = yPos;
-		firstMouse = false;
-	}
-
-	float x_offset = xPos - lastXPos;
-	float y_offset = lastYPos - yPos;
 
 	rotationAngles.y += x_offset * sensitivity;
 	rotationAngles.x += y_offset * sensitivity;
@@ -72,7 +79,7 @@ void Camera::updateMousePos(const double& xPos, const double& yPos, double lastX
 	updateVectors();
 }
 
-mat4 &Camera::getProjectionMatrix()
+mat4 &Camera::getProjectionMatrix() 
 {
 	return this->projectionMatrix;
 }
@@ -129,9 +136,6 @@ void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const floa
 	}
 	//if (this->positionVector.y < 0.0F)
 		//this->positionVector.y = 0.0F;
-
-	this->updateVectors();
-
 }
 
 glm::vec3 &Camera::getWorldPos()

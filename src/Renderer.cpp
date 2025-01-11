@@ -1,10 +1,13 @@
 #include <h/Renderer.h>
 
+
+/*
 void Renderer::DrawWorld(World &world)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 
 	static Engine &engineInstance = Engine::instance();
 	static ResourceManager &resourceManager = engineInstance.getResourceManager();
@@ -15,49 +18,17 @@ void Renderer::DrawWorld(World &world)
 	static GLuint cubeMeshVAO = cubeMesh.getVAO();
 
 	glStencilMask(0x00);
-
-
 	glUseProgram(cubeShader);
 	glBindVertexArray(cubeMeshVAO);
-
-
 	glUniformMatrix4fv(glGetUniformLocation(cubeShader, "proj"), 1, GL_FALSE, glm::value_ptr(targetCamera->getProjectionMatrix()));
 	glUniformMatrix4fv(glGetUniformLocation(cubeShader, "view"), 1, GL_FALSE, glm::value_ptr(targetCamera->getViewMatrix()));
 
 
-	for (Cube& cube : world.getCubeBufferReference())
+	for (Cube cube : world.getCubeBufferReference())
 	{
-		if (cube.isSelected() && !engineInstance.shouldMoveTargetCam())
-		{
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glStencilMask(0xFF);
-		}
-
 		glUniformMatrix4fv(glGetUniformLocation(cubeShader, "world"), 1, GL_FALSE, glm::value_ptr(cube.getWorldMatrix()));
 		glDrawElements(GL_TRIANGLES, cubeMesh.getIndexBufferSize() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
-
-		if (cube.isSelected() && !engineInstance.shouldMoveTargetCam())
-		{
-			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-			glStencilMask(0x00);
-			glDisable(GL_DEPTH_TEST);
-
-			Transform t = cube.getTransform();
-			t.scale = glm::vec3(1.05f, 1.05f, 1.05f);
-			t.updateWorldMatrix();
-			
-			glUseProgram(cubeOutlineShader);
-			glUniformMatrix4fv(glGetUniformLocation(cubeShader, "proj"), 1, GL_FALSE, glm::value_ptr(targetCamera->getProjectionMatrix()));
-			glUniformMatrix4fv(glGetUniformLocation(cubeShader, "view"), 1, GL_FALSE, glm::value_ptr(targetCamera->getViewMatrix()));
-			glUniformMatrix4fv(glGetUniformLocation(cubeOutlineShader, "world"), 1, GL_FALSE, glm::value_ptr(t.worldMatrix));
-			glDrawElements(GL_TRIANGLES, cubeMesh.getIndexBufferSize() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
-
-			glStencilMask(0xFF);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glEnable(GL_DEPTH_TEST);
-			glUseProgram(cubeShader);
-		}
 
 
 	}
@@ -65,6 +36,7 @@ void Renderer::DrawWorld(World &world)
 	glUseProgram(0);
 	glBindVertexArray(0);
 }
+
 
 void Renderer::DrawCube(Cube& cube)
 {
@@ -89,3 +61,42 @@ void Renderer::DrawCube(Cube& cube)
 	glDrawElements(GL_TRIANGLES, cubeMesh.getIndexBufferSize() / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 }
 
+*/
+
+void GL::InitRenderer()
+{
+	glEnable(GL_DEPTH_TEST);
+}
+
+void GL::StartRenderPass()
+{
+}
+
+void GL::DrawScene(const Scene& scene)
+{
+	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//
+//	cube entities
+	Shader cube_shader = scene.GetShader(CUBE_SHADER_ID);
+
+	int vao = scene.GetVaoId(CUBE_MESH_ID);
+	auto entity_it = scene.GetCubeEntityBufferStartIt();
+	auto stop = scene.GetCubeEntityBufferEndIt();
+
+	glBindVertexArray(vao);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene.GetEboId(CUBE_MESH_ID));
+	cube_shader.UseProgram();
+	while (entity_it != stop)
+	{
+		cube_shader.setMat4("world", entity_it->physics.transform.worldMatrix);
+		++entity_it;
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	}
+
+	
+	glUseProgram(0);
+	glBindVertexArray(0);
+}
