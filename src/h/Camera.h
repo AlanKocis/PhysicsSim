@@ -61,6 +61,8 @@ public:
 	bool isTurnable();
 	bool isMoveable();
 	void setFirstMouse();
+	void setWidth(float width);
+	void setHeight(float height);
 	void processCameraMovement(const CAMERA_DIRECTION& direction, const float& dT);
 	glm::vec3 &getWorldPos();
 };

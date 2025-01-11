@@ -10,11 +10,10 @@
 class Scene
 {
 private:
+//	resources
 	Camera main_camera;
 	std::vector<CubeEntity> cube_entities;
 	std::vector<PlaneEntity> plane_entities;
-//	reserve these in the constructor to have size equal to NUM_ID enum
-//	then can access vectors with [] safelys
 	GLmesh loaded_meshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];
 // stores 0 for every mesh/shader type when unloaded
@@ -28,11 +27,11 @@ private:
 //	for now just load everything I make so far and open a default scene
 	void LoadSceneMesh(MESH_INDEX_ID mesh_type);
 	void LoadSceneShader(SHADER_INDEX_ID shader_id);
+	void LoadAllMeshes();
+	void LoadAllShaders();
 public:
 	Scene();
 	~Scene();
-	void LoadAllMeshes();
-	void LoadAllShaders();
 	void LoadDefaultScene();	//check this to see how to set up a LoadScene() function
 	void UpdateScene(const double& x_offset, const double &y_offset, float delta_time);
 	void AddEntity(EntityID entity_type);	//send an event to gui class?
@@ -43,6 +42,8 @@ public:
 	uint32_t GetEntityCount(EntityID entity_type) const;
 	uint32_t GetVaoId(MESH_INDEX_ID mesh_type) const;
 	uint32_t GetEboId(MESH_INDEX_ID mesh_type) const;
+
+	Camera &GetMainCamRef() const;
 
 	uint32_t GetShaderId(SHADER_INDEX_ID shader_id) const;
 };

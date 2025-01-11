@@ -143,3 +143,13 @@ double GLFW::Window::GetMouseYOffset() const
 {
 	return (mouse_data.last_y - mouse_data.y);
 }
+
+uint32_t GLFW::Window::GetWidth() const
+{
+	return width;
+}
+
+uint32_t GLFW::Window::GetHeight() const
+{
+	return height;
+}

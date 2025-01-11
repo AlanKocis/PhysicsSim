@@ -60,6 +60,7 @@ void Camera::updateVectors()
 	rightVector = glm::normalize(glm::cross(forwardVector, DEFAULT_UP_VECTOR));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
 	upVector = glm::normalize(glm::cross(rightVector, forwardVector));
 	viewMatrix = glm::lookAt(positionVector, positionVector + forwardVector, DEFAULT_UP_VECTOR);
+	this->projectionMatrix = glm::perspective(FOV, (cameraWidth / cameraHeight), 0.1f, 100.0f);
 
 }
 
@@ -102,6 +103,16 @@ bool Camera::isMoveable()
 void Camera::setFirstMouse()
 {
 	this->firstMouse = true;
+}
+
+void Camera::setWidth(float width)
+{
+	this->cameraWidth = width;
+}
+
+void Camera::setHeight(float height)
+{
+	this->cameraHeight = height;
 }
 
 

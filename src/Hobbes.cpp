@@ -40,7 +40,7 @@ void Hobbes::RenderingEngine::Run()
 		double y = window.GetMouseYOffset();
 		render_scene.UpdateScene(x, y, dt);
 
-
+		GL::Viewport(window.GetWidth(), window.GetHeight());
 		GL::DrawScene(render_scene);
 //		handle events?
 //		GUI?

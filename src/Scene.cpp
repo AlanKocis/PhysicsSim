@@ -10,16 +10,6 @@ Scene::~Scene()
 	this->FreeBuffers();
 }
 
-void Scene::LoadAllMeshes()
-{
-	LoadSceneMesh(CUBE_MESH_ID);
-}
-
-void Scene::LoadAllShaders()
-{
-	LoadSceneShader(CUBE_SHADER_ID);
-}
-
 void Scene::UpdateScene(const double &x_offset, const double &y_offset, float delta_time)
 {
 	//
@@ -139,6 +129,17 @@ void Scene::LoadSceneShader(SHADER_INDEX_ID shader_id)
 	case PLANE_SHADER_ID:	break;
 	}
 }
+
+void Scene::LoadAllMeshes()
+{
+	LoadSceneMesh(CUBE_MESH_ID);
+}
+
+void Scene::LoadAllShaders()
+{
+	LoadSceneShader(CUBE_SHADER_ID);
+}
+
 
 void Scene::LoadDefaultScene()
 {

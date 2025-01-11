@@ -43,6 +43,8 @@ namespace GLFW
 		void SetFirstMouse(int val);
 		double GetMouseXOffset() const;
 		double GetMouseYOffset() const;
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
 	};
 
 }

@@ -100,3 +100,8 @@ void GL::DrawScene(const Scene& scene)
 	glUseProgram(0);
 	glBindVertexArray(0);
 }
+
+void GL::Viewport(int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
