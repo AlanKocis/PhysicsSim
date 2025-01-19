@@ -2,7 +2,7 @@
 
 CubeEntity::CubeEntity()
 {
-	physics.inverseMass = 0.0f;
+	//physics.inverseMass = 0.0f;
 }
 
 PlaneEntity::PlaneEntity()

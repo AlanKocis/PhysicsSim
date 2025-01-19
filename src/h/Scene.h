@@ -5,7 +5,7 @@
 #include <h/Entity.h>
 #include <h/Mesh.h>
 #include <h/Camera.h>
-#include <h/Input.h>
+#include <h/Window.h>
 
 class Scene
 {
@@ -33,7 +33,7 @@ public:
 	Scene();
 	~Scene();
 	void LoadDefaultScene();	//check this to see how to set up a LoadScene() function
-	void UpdateScene(const double& x_offset, const double &y_offset, float delta_time);
+	void UpdateScene(const GLFW::Window& window, float delta_time);
 	void AddEntity(EntityID entity_type);	//send an event to gui class?
 	std::vector<CubeEntity>::const_iterator GetCubeEntityBufferStartIt() const;
 	std::vector<CubeEntity>::const_iterator GetCubeEntityBufferEndIt() const;

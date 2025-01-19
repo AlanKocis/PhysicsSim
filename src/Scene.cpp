@@ -10,26 +10,50 @@ Scene::~Scene()
 	this->FreeBuffers();
 }
 
-void Scene::UpdateScene(const double &x_offset, const double &y_offset, float delta_time)
+void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 {
 	//
 	// update main camera
-	main_camera.updateMousePos(x_offset, y_offset);
+	double x_offset = window.GetMouseXOffset();
+	double y_offset = window.GetMouseYOffset();
 	 
-
-	//	physics
-	//	update uniforms
-	//	cube entities
-
-
-	for (auto ce_it = cube_entities.begin(); ce_it != cube_entities.end(); ce_it++)
+	double t = window.GetTime();
+	if (t > 0.5)
 	{
-		ce_it->physics.integrate(delta_time);
-		ce_it->physics.transform.updateWorldMatrix();
+		window.SetCursorMode(GLFW::CursorModes::Visible);
+		main_camera.updateMousePos(x_offset, y_offset);
+
+	}
+
+
+
+	static float n = 0.0f;
+	n += 0.5 * delta_time;
+	uint32_t ms = t * 1000;
+
+	main_camera.processCameraMovement(window, delta_time);
+	
+
+//	physics
+// 	update uniforms
+
+// 
+//	cube entities
+	for (auto entity = cube_entities.begin(); entity != cube_entities.end(); entity++)
+	{
+		entity->physics.integrate(delta_time);
+		entity->physics.transform.updateWorldMatrix();
+		entity->physics.GenerateCubeInertiaTensors();
 		loaded_shaders[CUBE_SHADER_ID].UseProgram();
 		loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
 		loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
-		
+	}
+
+	if (window.KeyPressed(HOBBES_KEY_SPACE))
+	{
+		//cube_entities[0].physics.transform.scale = { 0.3f, 0.3f, 0.3f };
+		//cube_entities[0].physics.transform.orientation = glm::normalize(glm::quat(glm::vec3(n, n, -n)));
+		cube_entities[0].physics.addForceAtBodyPoint(glm::vec3(0, 200, 0), glm::vec3(-1, 0, 0));
 	}
 
 }
@@ -155,12 +179,12 @@ void Scene::LoadDefaultScene()
 
 	AddEntity(CUBE);
 	cube_entities[num_cubes - 1].physics.transform.pos.x = 3;
-	cube_entities[num_cubes - 1].physics.transform.pos.y = 0;
+	cube_entities[num_cubes - 1].physics.transform.pos.y = 5;
 	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
 
 	AddEntity(CUBE);
 	cube_entities[num_cubes - 1].physics.transform.pos.x = -3;
-	cube_entities[num_cubes - 1].physics.transform.pos.y = 0;
+	cube_entities[num_cubes - 1].physics.transform.pos.y = 6;
 	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
 
 }

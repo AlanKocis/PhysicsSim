@@ -11,7 +11,7 @@ Hobbes::RenderingEngine::~RenderingEngine()
 void Hobbes::RenderingEngine::Init()
 {
 	GLFW::Window::Init();
-	window.CreateWindow();
+	window.CreateWindow(GLFW::CursorModes::HiddenConfined);
 	GL::InitRenderer();
 
 	render_scene.LoadDefaultScene();
@@ -26,22 +26,23 @@ void Hobbes::RenderingEngine::Terminate()
 
 void Hobbes::RenderingEngine::Run()
 {
-	double last_time = window.GetTime();
+	double t_naught = window.GetTime();
 	Init();
 	while (running)
 	{
 		double t = window.GetTime();
-		double dt = t - last_time;
-		last_time = t;
-
+		double dt = t - t_naught;
+		t_naught = t;
 
 //		Render pass
-		double x = window.GetMouseXOffset();
-		double y = window.GetMouseYOffset();
-		render_scene.UpdateScene(x, y, dt);
+		render_scene.UpdateScene(window, dt);
 
-		GL::Viewport(window.GetWidth(), window.GetHeight());
+		uint32_t w, h;
+		w = window.GetWidth();
+		h = window.GetHeight();
+		GL::Viewport(w, h);
 		GL::DrawScene(render_scene);
+
 //		handle events?
 //		GUI?
 //		This updates mouse data

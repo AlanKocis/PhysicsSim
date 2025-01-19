@@ -7,8 +7,11 @@ GLFW::Window::Window()
 	height = DEFAULT_WINDOW_HEIGHT;
 	mouse_data.x = width / 2.0;
 	mouse_data.y = height / 2.0;
-	mouse_data.last_x = width / 2.0;
-	mouse_data.last_y = height / 2.0;
+	mouse_data.last_x = mouse_data.x;
+	mouse_data.last_y = mouse_data.y;
+	first_mouse = true;
+	mouse_captured = false;
+	cursor_mode = CursorModes::HiddenConfined;
 }
 
 GLFW::Window::~Window()
@@ -39,7 +42,7 @@ void GLFW::Window::CreateWindow()
 	if (window_ptr)
 		return;
 
-	window_ptr = glfwCreateWindow(width, height, "Window", NULL, NULL);
+	window_ptr = glfwCreateWindow(width, height, "Hobbes v1.2", NULL, NULL);
 	glfwMakeContextCurrent(window_ptr);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -53,8 +56,35 @@ void GLFW::Window::CreateWindow()
 	glfwSetWindowUserPointer(window_ptr, reinterpret_cast<void *>(this));
 }
 
+void GLFW::Window::CreateWindow(CursorModes cursor_mode)
+{
+	printf("test\n");
+	if (window_ptr)
+		return;
+
+	window_ptr = glfwCreateWindow(width, height, "Hobbes v1.2", NULL, NULL);
+	glfwMakeContextCurrent(window_ptr);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		printf("Critical error in Window.cpp :: GLAD failed\n");
+		exit(-1);
+	}
+	SetCursorMode(cursor_mode);
+	glfwSetFramebufferSizeCallback(window_ptr, &(GLFW::Window::FrameBufferSizeCallback));
+	glfwSetCursorPosCallback(window_ptr, &(CursorPosCallback));
+	glfwSetMouseButtonCallback(window_ptr, &(MouseButtonCallback));
+	glfwSetWindowUserPointer(window_ptr, reinterpret_cast<void *>(this));
+}
+
+bool GLFW::Window::KeyPressed(int key) const
+{
+	return glfwGetKey(window_ptr, key);
+}
+
 void GLFW::Window::SwapMouseFrameData(double x, double y)
 {
+
 	mouse_data.last_x = mouse_data.x;
 	mouse_data.last_y = mouse_data.y;
 	mouse_data.x = x;
@@ -132,6 +162,19 @@ bool GLFW::Window::IsFirstMouse()
 void GLFW::Window::SetFirstMouse(int val)
 {
 	first_mouse = val;
+}
+
+void GLFW::Window::SetCursorMode(CursorModes mode) const
+{
+	switch (mode)
+	{
+	case Visible:
+		glfwSetInputMode(window_ptr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		break;
+	case HiddenConfined:
+		glfwSetInputMode(window_ptr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);	
+		break;
+	}
 }
 
 double GLFW::Window::GetMouseXOffset() const

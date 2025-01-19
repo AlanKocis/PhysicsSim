@@ -6,13 +6,14 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <h/Defaults.h>
+#include <h/Window.h>
 
 typedef glm::vec3 vec3;
 typedef glm::mat4 mat4;
 
 #define DEFAULT_FOV ( glm::radians(45.0f) )
 #define DEFAULT_MOUSE_SENSITIVITY 0.1f
-#define DEFAULT_FLY_SPEED 10.0f
+#define DEFAULT_FLY_SPEED 20.0f
 #define DEFAULT_POSITION_VECTOR {0.0f, 1.0f, 1.0f} 
 #define DEFAULT_FORWARD_VECTOR {0.0f, 0.0f, -1.0f}
 #define DEFAULT_ROTATION_ANGLES {0.0f, -90.0f, 0.0f}
@@ -63,7 +64,7 @@ public:
 	void setFirstMouse();
 	void setWidth(float width);
 	void setHeight(float height);
-	void processCameraMovement(const CAMERA_DIRECTION& direction, const float& dT);
+	void processCameraMovement(const GLFW::Window& window, const float &dT);
 	glm::vec3 &getWorldPos();
 };
 

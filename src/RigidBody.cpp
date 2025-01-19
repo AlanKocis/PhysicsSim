@@ -2,15 +2,14 @@
 
 RigidBody::RigidBody()
 {
-	orientation = { 0, 0, 0, 0 };
 	velocity = { 0, 0, 0 };
 	angularVelocity = { 0, 0, 0 };
 	acceleration = { 0, 0, 0 };
 	sumForces = { 0, 0, 0 };
 	sumTorques = { 0, 0, 0 };
 	inverseMass = 0.1f;
-	angularDamping = 0.7f;
-	linearDamping = 0.7f;
+	angularDamping = 0.4f;
+	linearDamping = 0.4f;
 	shouldRender = true;
 	inverseInertiaTensor = glm::mat3(1.0f);
 	inverseInertiaTensorWorld = glm::mat3(1.0f);
@@ -20,14 +19,17 @@ void RigidBody::integrate(float time)
 {
 	if (this->inverseMass <= 0.0F)
 		return;
-	assert(time > 0.0F);
+	assert(time > 0.0F); 
 
 	glm::vec3 p = transform.pos;
 
-	glm::vec3 lastFrameAcceleration = acceleration;
-	lastFrameAcceleration += sumForces * inverseMass;
-
-	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * sumTorques;
+ 	glm::vec3 lastFrameAcceleration = acceleration;
+	lastFrameAcceleration = sumForces * inverseMass;
+	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * sumTorques; 
+	 
+	//if (p.y > 0.0f)
+		//lastFrameAcceleration += glm::vec3(0, -10, 0);
+	              
 
 	velocity += lastFrameAcceleration * time;
 	angularVelocity += angularAcceleration * time;
@@ -35,59 +37,68 @@ void RigidBody::integrate(float time)
 	angularVelocity *= powf(linearDamping, time);
 
 	transform.pos += velocity * time;
-	//orientation += angularVelocity * time * 0.5f;
-	glm::quat q(0, angularVelocity.x, angularVelocity.y, angularVelocity.z);
-	orientation += (q * time * 0.5f);
-	glm::normalize(orientation);
+
+
+	glm::quat q = { 0, angularVelocity.x * time, angularVelocity.y * time, angularVelocity.z * time };
+	q *= 0.5f;
+	q *= transform.orientation;
 	
-	sumForces = { 0, 0, 0 };
-	sumTorques = { 0, 0, 0 };
+
+	transform.orientation.x += q.x;
+	transform.orientation.y += q.y;
+	transform.orientation.z += q.z;
+	transform.orientation.w += q.w;
+	 
+	glm::normalize(q);
+	sumForces = { 0.0f, 0.0f, 0.0f };
+	sumTorques = { 0.0f, 0.0f, 0.0f };
+
 }
 
-/*
-void RigidBody::updateMatrices()
+void RigidBody::GenerateCubeInertiaTensors()
 {
-	if (inverseMass == 0)
+	if (this->inverseMass <= 0.0F)
 		return;
 
+	//		calculate inertia tensor
+	//
+	float x = (transform.scale.x * transform.scale.x);
+	float y = (transform.scale.y * transform.scale.y);
+	float z = (transform.scale.z * transform.scale.z);
 
 
-	switch (entityType)
-	{
-	case CUBE:
-//		calculate inertia tensor
-//
-		float x = (transform.scale.x * transform.scale.x);
-		float y = (transform.scale.y * transform.scale.y);
-		float z = (transform.scale.z * transform.scale.z);
 
-		glm::mat3 tensor;
-		tensor[0][0] = (1 / 12) * (1 / inverseMass) * (y + z);
-		tensor[0][1] = 0;
-		tensor[0][2] = 0;
-		tensor[1][0] = 0;
-		tensor[1][1] = (1 / 12) * (1 / inverseMass) * (x + z);
-		tensor[1][0] = 0;
-		tensor[2][0] = 0;
-		tensor[2][1] = 0;
-		tensor[2][2] = (1 / 12) * (1 / inverseMass) * (x + y);
+	glm::mat3 tensor;
+	tensor[0][0] = (1.0f / 12.0f) * (1.0f / inverseMass) * (y + z);
+	tensor[0][1] = 0;
+	tensor[0][2] = 0; 
+	tensor[1][0] = 0;
+	tensor[1][1] = (1.0f / 12.0f) * (1.0f / inverseMass) * (x + z);
+	tensor[1][2] = 0;
+	tensor[2][0] = 0;
+	tensor[2][1] = 0;
+	tensor[2][2] = (1.0f / 12.0f) * (1.0f / inverseMass) * (x + y);
+	inverseInertiaTensor = glm::inverse(tensor);
+	//		Transform basis to get world coordinate inertia tensor
+	//
+	printf("TEST: DET=%f\n", glm::determinant(transform.worldMatrix));
+	//inverseInertiaTensorWorld = glm::mat3(transform.worldMatrix) * inverseInertiaTensor;
 
-		inverseInertiaTensor = glm::inverse(tensor);
-//		Transform basis to get world coordinate inertia tensor
-//
-		glm::mat3 iM = glm::inverse(glm::mat3(transform.worldMatrix));
-		iM = (inverseInertiaTensor * iM);
-		inverseInertiaTensorWorld = glm::mat3(transform.worldMatrix) * iM;
-
-
-		break;
-	}
+	glm::mat3 worldMat = transform.worldMatrix;
+	inverseInertiaTensorWorld = worldMat * inverseInertiaTensor;
+	inverseInertiaTensorWorld *= glm::transpose(worldMat);
+	//inverseInertiaTensorWorld = glm::inverse(inverseInertiaTensorWorld);
 
 
 
 
+	//glm::mat3 iM = glm::inverse(glm::mat3(transform.worldMatrix));
+
+	//inverseInertiaTensorWorld = (glm::mat3(transform.worldMatrix) * inverseInertiaTensor) * iM;
+	//inverseInertiaTensorWorld = inverseInertiaTensorWorld * iM;
+	//iM = (inverseInertiaTensor * iM);
+	
 }
-*/
 
 bool RigidBody::hasInfiniteMass()
 {
@@ -99,14 +110,24 @@ bool RigidBody::hasInfiniteMass()
 
 void RigidBody::addForceAtCenter(const glm::vec3 &force)
 {
+	glm::vec3 point = { 0.0f, 0.0f, 0.0f };
+	addForceAtBodyPoint(force, point);
 }
 
 void RigidBody::addForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &point)
 {
+	glm::vec3 r = point - transform.pos;
+	r /= r.length();
+
+	sumForces += force;
+	sumTorques += glm::cross(r, force);
 }
 
 void RigidBody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point)
 {
+	glm::vec4 p = { point.x, point.y, point.z, 1.0f };
+	p = transform.worldMatrix * p;
+	addForceAtWorldPoint(force, p);
 }
 
 

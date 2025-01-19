@@ -6,9 +6,16 @@
 #include <h/Defaults.h>
 #include <h/Input.h>
 #include <string>
+#include <unordered_map>
 
 namespace GLFW
 {
+	enum CursorModes
+	{
+		Visible,
+		HiddenConfined,
+	};
+
 	class Window
 	{
 	private:
@@ -17,34 +24,45 @@ namespace GLFW
 		GLFWwindow *window_ptr;
 		uint32_t width;
 		uint32_t height;
-		bool first_mouse = true;
+		CursorModes cursor_mode;
+		bool first_mouse;
+		bool mouse_captured;
 	public:
 		Window();
 		~Window();
+//
 		void Update();
-		int ShouldClose() const;
+		void DestroyWindow();
+		void CreateWindow();
+		void CreateWindow(CursorModes cursor_mode);
+//
+		bool KeyPressed(int key) const;
 		double GetMouseXPos() const { return mouse_data.x; }
 		double GetMouseYPos() const { return mouse_data.y; }
 		double GetMouseLastXPos() const { return mouse_data.last_x; }
 		double GetMouseLastYPos() const { return mouse_data.last_y; }
-		void DestroyWindow();
-		void CreateWindow();
+		double GetMouseXOffset() const;
+		double GetMouseYOffset() const;
+		const Mouse &GetMouseData();
+		int ShouldClose() const;
+		bool IsAlive() const;
+		bool IsFirstMouse();
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
+//
+		void SetCursorMode(CursorModes cursor_mode) const;
+		void SetFirstMouse(int val);
+//
 		void SwapMouseFrameData(double x, double y);
 		void SwapSizeFrameData(int width, int height);
-		const Mouse &GetMouseData();
+//		GLOBAL GLFW FUNCTIONS
 		static void FrameBufferSizeCallback(GLFWwindow *window, int width, int height);
 		static void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 		static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-		static void Init();
+		static void Init(); 
 		static void Terminate();
 		static double GetTime();
-		bool IsAlive() const;
-		bool IsFirstMouse();
-		void SetFirstMouse(int val);
-		double GetMouseXOffset() const;
-		double GetMouseYOffset() const;
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
+//
 	};
 
 }

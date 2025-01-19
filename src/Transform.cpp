@@ -32,10 +32,11 @@ Transform::Transform(const float &posX, const float &posY, const float &posZ, co
 
 void Transform::updateWorldMatrix()
 {
-	worldMatrix = glm::mat4(1.0f);
-	worldMatrix = glm::translate(worldMatrix, glm::vec3(pos.x, pos.y, pos.z));
-	glm::mat4 rotation = glm::mat4(orientation);
+	glm::normalize(orientation);
 
-	rotation *= worldMatrix;
-	worldMatrix = glm::scale(rotation, scale);
+	glm::mat4 M(1.0f);
+	M = glm::translate(M, pos);
+	M *= glm::mat4_cast(orientation);
+	M = glm::scale(M, scale);
+	worldMatrix = M;
 }

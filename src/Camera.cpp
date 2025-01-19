@@ -117,14 +117,33 @@ void Camera::setHeight(float height)
 
 
 
-void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const float& dT)
+void Camera::processCameraMovement(const GLFW::Window &window, const float &dT)
 {
 	if (!this->isMoveable())
 		return;
 
+	glm::vec3 move_dir{0, 0, 0};
+
+	if (window.KeyPressed(HOBBES_KEY_W))
+		move_dir += this->forwardVector;
+	if (window.KeyPressed(HOBBES_KEY_S))
+		move_dir -= this->forwardVector;
+	if (window.KeyPressed(HOBBES_KEY_A))
+		move_dir -= this->rightVector;
+	if (window.KeyPressed(HOBBES_KEY_D))
+		move_dir += this->rightVector;
+	if (window.KeyPressed(HOBBES_KEY_Q))
+		move_dir.y -= 1;
+	if (window.KeyPressed(HOBBES_KEY_E))
+		move_dir.y += 1;
+
+	move_dir /= move_dir.length();
 
 	float SPEED = flySpeed * dT;
-	switch (direction)
+	move_dir *= SPEED;
+
+	this->positionVector += move_dir;
+	/*switch (direction)
 	{
 	case FORWARD:
 		this->positionVector += SPEED * this->forwardVector;
@@ -147,6 +166,7 @@ void Camera::processCameraMovement(const CAMERA_DIRECTION &direction, const floa
 	}
 	//if (this->positionVector.y < 0.0F)
 		//this->positionVector.y = 0.0F;
+		*/
 }
 
 glm::vec3 &Camera::getWorldPos()

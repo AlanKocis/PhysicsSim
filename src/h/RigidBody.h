@@ -10,7 +10,6 @@ struct RigidBody
 	Transform transform;
 	glm::mat3 inverseInertiaTensor;
 	glm::mat3 inverseInertiaTensorWorld;
-	glm::quat orientation;
 	glm::vec3 velocity;
 	glm::vec3 angularVelocity;
 	glm::vec3 acceleration; 
@@ -24,7 +23,8 @@ struct RigidBody
 	//void loadRigidBody(EntityID id);
 	void integrate(float time);
 	//void updateMatrices();
-	void setInertiaTensor();
+
+	void GenerateCubeInertiaTensors();
 	bool hasInfiniteMass();
 	void addForceAtCenter(const glm::vec3 &force);
 	void addForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &point);
