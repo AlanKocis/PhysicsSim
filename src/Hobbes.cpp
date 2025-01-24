@@ -12,6 +12,9 @@ void Hobbes::RenderingEngine::Init()
 {
 	GLFW::Window::Init();
 	window.CreateWindow(GLFW::CursorModes::HiddenConfined);
+	GLFWwindow *window = NULL;
+
+
 	GL::InitRenderer();
 
 	render_scene.LoadDefaultScene();
@@ -28,6 +31,7 @@ void Hobbes::RenderingEngine::Run()
 {
 	double t_naught = window.GetTime();
 	Init();
+//	main "game loop"
 	while (running)
 	{
 		double t = window.GetTime();

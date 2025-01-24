@@ -88,12 +88,12 @@ void GL::DrawScene(const Scene& scene)
 	glBindVertexArray(vao);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene.GetEboId(CUBE_MESH_ID));
 	cube_shader.UseProgram();
+
 	while (entity_it != stop)
 	{
 		cube_shader.setMat4("world", entity_it->physics.transform.worldMatrix);
-		++entity_it;
-
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		++entity_it;
 	}
 
 	

@@ -42,39 +42,44 @@ void GLFW::Window::CreateWindow()
 	if (window_ptr)
 		return;
 
+//	center window
+	int num_monitors;
+	int monitorX, monitorY;
+
+	GLFWmonitor **monitors = glfwGetMonitors(&num_monitors);
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	const GLFWvidmode *videoMode = glfwGetVideoMode(monitors[0]);
+	glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
+
 	window_ptr = glfwCreateWindow(width, height, "Hobbes v1.2", NULL, NULL);
+	assert(window_ptr, "failed to create GLFW::Window\n");
+
 	glfwMakeContextCurrent(window_ptr);
+	glfwDefaultWindowHints();
+	glfwSetWindowPos(window_ptr,
+		monitorX + (videoMode->width - DEFAULT_WINDOW_WIDTH) / 2,
+		monitorY + (videoMode->height - DEFAULT_WINDOW_HEIGHT) / 2);
+	glfwShowWindow(window_ptr);
+
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		printf("Critical error in Window.cpp :: GLAD failed\n");
+		printf("Critical error in Window.cpp :: GLAD failed to join window context\n");
 		exit(-1);
 	}
 	glfwSetFramebufferSizeCallback(window_ptr, &(GLFW::Window::FrameBufferSizeCallback));
 	glfwSetCursorPosCallback(window_ptr, &(CursorPosCallback));
 	glfwSetMouseButtonCallback(window_ptr, &(MouseButtonCallback));
 	glfwSetWindowUserPointer(window_ptr, reinterpret_cast<void *>(this));
+
+
+
 }
 
 void GLFW::Window::CreateWindow(CursorModes cursor_mode)
 {
-	printf("test\n");
-	if (window_ptr)
-		return;
-
-	window_ptr = glfwCreateWindow(width, height, "Hobbes v1.2", NULL, NULL);
-	glfwMakeContextCurrent(window_ptr);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		printf("Critical error in Window.cpp :: GLAD failed\n");
-		exit(-1);
-	}
+	CreateWindow();
 	SetCursorMode(cursor_mode);
-	glfwSetFramebufferSizeCallback(window_ptr, &(GLFW::Window::FrameBufferSizeCallback));
-	glfwSetCursorPosCallback(window_ptr, &(CursorPosCallback));
-	glfwSetMouseButtonCallback(window_ptr, &(MouseButtonCallback));
-	glfwSetWindowUserPointer(window_ptr, reinterpret_cast<void *>(this));
 }
 
 bool GLFW::Window::KeyPressed(int key) const

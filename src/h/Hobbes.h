@@ -4,6 +4,7 @@
 #include <h/Renderer.h>
 #include <h/Scene.h>
 #include <h/Window.h>
+#include <h/Events.h>
 
 namespace Hobbes
 {

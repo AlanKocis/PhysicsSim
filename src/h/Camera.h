@@ -66,6 +66,7 @@ public:
 	void setHeight(float height);
 	void processCameraMovement(const GLFW::Window& window, const float &dT);
 	glm::vec3 &getWorldPos();
+	glm::vec3 &getForwardVec();
 };
 
 #endif

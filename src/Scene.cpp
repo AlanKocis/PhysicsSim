@@ -13,19 +13,17 @@ Scene::~Scene()
 void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 {
 	//
-	// update main camera
+	// update main camera 
 	double x_offset = window.GetMouseXOffset();
 	double y_offset = window.GetMouseYOffset();
 	 
 	double t = window.GetTime();
 	if (t > 0.5)
 	{
-		window.SetCursorMode(GLFW::CursorModes::Visible);
+		//window.SetCursorMode(GLFW::CursorModes::Visible);
 		main_camera.updateMousePos(x_offset, y_offset);
 
 	}
-
-
 
 	static float n = 0.0f;
 	n += 0.5 * delta_time;
@@ -33,6 +31,65 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 	main_camera.processCameraMovement(window, delta_time);
 	
+
+
+
+	static double _last_input_s = 0.0;
+	double _cooldown_s = 0.1;
+
+	if (window.KeyPressed(HOBBES_KEY_SPACE))
+	{
+		//cube_entities[0].physics.transform.scale = { 0.3f, 0.3f, 0.3f };
+		//cube_entities[0].physics.transform.orientation = glm::normalize(glm::quat(glm::vec3(n, n, -n)));
+		//cube_entities[0].physics.addForceAtBodyPoint(glm::vec3(0, 200, 0), glm::vec3(-1, 0, 0));
+
+
+		if (t - _last_input_s >= _cooldown_s)
+		{
+			AddEntity(CUBE);
+			cube_entities[num_cubes - 1].physics.transform.pos = main_camera.getWorldPos();
+			glm::vec3 impulse{ 0, 0, 0 };
+			impulse += main_camera.getForwardVec();
+			impulse /= impulse.length();
+
+			impulse *= 200000;
+
+			float omega = 0.4 * sin(5 * t); //-.4 to 0.4
+			cube_entities[num_cubes - 1].physics.transform.scale = glm::vec3(omega * 2.0f);
+
+			float lambda = omega * omega * 2.0f; // positive only
+			cube_entities[num_cubes - 1].physics.addForceAtBodyPoint(impulse, glm::vec3(-lambda, omega*2.0f, omega*2.0f));
+			_last_input_s = t;
+		}
+	}
+
+	static double _last_reset_s = 0.0;
+	double _reset_cooldown_s = 0.5;
+	if (window.KeyPressed(HOBBES_KEY_ESCAPE))
+	{
+		if (t - _last_reset_s >= _reset_cooldown_s)
+		{
+			this->LoadDefaultScene();
+			_last_reset_s = t;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //	physics
 // 	update uniforms
@@ -47,13 +104,6 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 		loaded_shaders[CUBE_SHADER_ID].UseProgram();
 		loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
 		loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
-	}
-
-	if (window.KeyPressed(HOBBES_KEY_SPACE))
-	{
-		//cube_entities[0].physics.transform.scale = { 0.3f, 0.3f, 0.3f };
-		//cube_entities[0].physics.transform.orientation = glm::normalize(glm::quat(glm::vec3(n, n, -n)));
-		cube_entities[0].physics.addForceAtBodyPoint(glm::vec3(0, 200, 0), glm::vec3(-1, 0, 0));
 	}
 
 }
@@ -121,8 +171,8 @@ void Scene::FreeAllocateBuffers()
 {
 	FreeBuffers();
 
-	cube_entities.reserve(1000);
-	plane_entities.reserve(1000);
+	cube_entities.reserve(2000);
+	plane_entities.reserve(2000);
 
 	num_cubes = 0;
 	num_planes = 0;
@@ -141,7 +191,7 @@ void Scene::LoadSceneMesh(MESH_INDEX_ID mesh_type)
 
 	GLmesh *mem_loc = &loaded_meshes[mesh_type];
 	GLmesh *loaded_mesh = new(mem_loc) GLmesh(mesh_type);
-	printf("success loading mesh id %d into %ld \n", (int)mesh_type, mem_loc);
+	printf("success loading mesh id %d into %llu \n", (int)mesh_type, (uintptr_t)mem_loc);
 }
 
 void Scene::LoadSceneShader(SHADER_INDEX_ID shader_id)
@@ -172,6 +222,12 @@ void Scene::LoadDefaultScene()
 	LoadAllMeshes();
 	LoadAllShaders();
 
+//	psudo-plane
+	AddEntity(CUBE);
+	cube_entities[num_cubes - 1].physics.inverseMass = 0.0f;
+	cube_entities[num_cubes - 1].physics.transform.scale = glm::vec3(25.0f, 0.0f, 25.0f);
+	cube_entities[num_cubes - 1].physics.transform.pos.y = -20.0f;
+
 	AddEntity(CUBE);
 	cube_entities[num_cubes - 1].physics.transform.pos.x = 0;
 	cube_entities[num_cubes - 1].physics.transform.pos.y = 0;
@@ -186,5 +242,6 @@ void Scene::LoadDefaultScene()
 	cube_entities[num_cubes - 1].physics.transform.pos.x = -3;
 	cube_entities[num_cubes - 1].physics.transform.pos.y = 6;
 	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
+
 
 }

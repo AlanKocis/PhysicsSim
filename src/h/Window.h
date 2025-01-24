@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <h/Defaults.h>
 #include <h/Input.h>
+#include <cassert>
 #include <string>
 #include <unordered_map>
 
@@ -52,6 +53,7 @@ namespace GLFW
 //
 		void SetCursorMode(CursorModes cursor_mode) const;
 		void SetFirstMouse(int val);
+
 //
 		void SwapMouseFrameData(double x, double y);
 		void SwapSizeFrameData(int width, int height);

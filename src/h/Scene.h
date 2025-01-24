@@ -6,6 +6,7 @@
 #include <h/Mesh.h>
 #include <h/Camera.h>
 #include <h/Window.h>
+#include <stdint.h>
 
 class Scene
 {
