@@ -91,7 +91,7 @@ void GL::DrawScene(const Scene& scene)
 
 	while (entity_it != stop)
 	{
-		cube_shader.setMat4("world", entity_it->physics.transform.worldMatrix);
+		cube_shader.setMat4("world", (*entity_it)->physics.transform.worldMatrix);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		++entity_it;
 	}

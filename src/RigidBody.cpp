@@ -48,7 +48,6 @@ void RigidBody::integrate(float time)
 	transform.orientation.y += q.y;
 	transform.orientation.z += q.z;
 	transform.orientation.w += q.w;
-	glm::normalize(transform.orientation);
 
 	sumForces = { 0.0f, 0.0f, 0.0f };
 	sumTorques = { 0.0f, 0.0f, 0.0f };
@@ -84,19 +83,10 @@ void RigidBody::GenerateCubeInertiaTensors()
 
 	//inverseInertiaTensorWorld = glm::mat3(transform.worldMatrix) * inverseInertiaTensor;
 
-	glm::mat3 R = glm::transpose(glm::inverse(glm::mat3((transform.worldMatrix))));
-	inverseInertiaTensorWorld = R * inverseInertiaTensor;
-	inverseInertiaTensorWorld *= glm::inverse(R);
-	//inverseInertiaTensorWorld = glm::inverse(inverseInertiaTensorWorld);
+	glm::mat3 R = glm::mat3_cast(transform.orientation);
+	inverseInertiaTensorWorld = (R * inverseInertiaTensor * glm::transpose(R));
 
-
-
-
-	//glm::mat3 iM = glm::inverse(glm::mat3(transform.worldMatrix));
-
-	//inverseInertiaTensorWorld = (glm::mat3(transform.worldMatrix) * inverseInertiaTensor) * iM;
-	//inverseInertiaTensorWorld = inverseInertiaTensorWorld * iM;
-	//iM = (inverseInertiaTensor * iM);
+ 
 	
 }
 

@@ -13,8 +13,9 @@ struct CubeEntity
 {
 	//	main internals
 	RigidBody physics;
-	uint32_t vaoID;
-	uint32_t shaderID;
+	uint16_t entity_id;
+	uint32_t vao_id;
+	uint32_t shader_id;
 	// others
 	//glm::vec3 color;
 	CubeEntity();
@@ -23,8 +24,8 @@ struct CubeEntity
 struct PlaneEntity
 {
 	RigidBody physics;
-	uint32_t vaoID;
-	uint32_t shaderID;
+	uint32_t vao_id;
+	uint32_t shader_id;
 	PlaneEntity();
 };
 

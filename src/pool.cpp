@@ -60,8 +60,11 @@ struct Pool_Free_Node {
 	Pool_Free_Node *next;
 };
 
-typedef struct Pool Pool;
-struct Pool {
+
+
+struct Pool
+{
+	//std::vector<T *> container;
 	unsigned char *buf;
 	size_t buf_len;
 	size_t chunk_size;

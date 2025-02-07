@@ -1,7 +1,7 @@
 #include <h/Hobbes.h>
 
 Hobbes::RenderingEngine::RenderingEngine()
-	: running{ 1 } {};
+	: running{ 1 } {}
 
 Hobbes::RenderingEngine::~RenderingEngine()
 {
@@ -12,13 +12,9 @@ void Hobbes::RenderingEngine::Init()
 {
 	GLFW::Window::Init();
 	window.CreateWindow(GLFW::CursorModes::HiddenConfined);
-	GLFWwindow *window = NULL;
-
-
 	GL::InitRenderer();
-
 	render_scene.LoadDefaultScene();
-
+	EventQueue &_InitEventQSingleton = EventQueue::Instance();
 	running = true;
 }
 
@@ -40,12 +36,12 @@ void Hobbes::RenderingEngine::Run()
 
 //		Render pass
 		render_scene.UpdateScene(window, dt);
+		GL::DrawScene(render_scene);
 
 		uint32_t w, h;
 		w = window.GetWidth();
 		h = window.GetHeight();
 		GL::Viewport(w, h);
-		GL::DrawScene(render_scene);
 
 //		handle events?
 //		GUI?

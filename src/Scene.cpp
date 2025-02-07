@@ -2,7 +2,8 @@
 
 Scene::Scene()
 {	
-	this->FreeAllocateBuffers();
+	this->AllocateBuffers();
+	this->FreeBuffers();
 }
 
 Scene::~Scene()
@@ -35,7 +36,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 
 	static double _last_input_s = 0.0;
-	double _cooldown_s = 0.1;
+	double _cooldown_s = 0.05;
 
 	if (window.KeyPressed(HOBBES_KEY_SPACE))
 	{
@@ -46,19 +47,15 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 		if (t - _last_input_s >= _cooldown_s)
 		{
-			AddEntity(CUBE);
-			cube_entities[num_cubes - 1].physics.transform.pos = main_camera.getWorldPos();
-			glm::vec3 impulse{ 0, 0, 0 };
-			impulse += main_camera.getForwardVec();
-			impulse /= impulse.length();
-
-			impulse *= 200000;
+			CubeEntity *cube_projectile = AddCubeEntity();
+			cube_projectile->physics.transform.pos = main_camera.getWorldPos();
+			glm::vec3 impulse = main_camera.getForwardVec();
+			impulse *= 20000;
 
 			float omega = 0.4 * sin(5 * t); //-.4 to 0.4
-			cube_entities[num_cubes - 1].physics.transform.scale = glm::vec3(omega * 2.0f);
-
 			float lambda = omega * omega * 2.0f; // positive only
-			cube_entities[num_cubes - 1].physics.addForceAtBodyPoint(impulse, glm::vec3(-lambda, omega*2.0f, omega*2.0f));
+			//cube_projectile->physics.transform.scale = glm::vec3(lambda);
+			cube_projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
 		}
 	}
@@ -96,7 +93,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 // 
 //	cube entities
-	for (auto entity = cube_entities.begin(); entity != cube_entities.end(); entity++)
+	for (CubeEntity *&entity : cube_entities)
 	{
 		entity->physics.integrate(delta_time);
 		entity->physics.transform.updateWorldMatrix();
@@ -108,32 +105,31 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 }
 
-void Scene::AddEntity(EntityID entity_type)
+CubeEntity* Scene::AddCubeEntity()
 {
-	switch (entity_type)
-	{
-	case CUBE:
-		cube_entities.emplace_back(CubeEntity());
-		cube_entities[num_cubes].vaoID = loaded_meshes[CUBE_MESH_ID].getVAO();
-		cube_entities[num_cubes].shaderID = loaded_shaders[CUBE_SHADER_ID].getID();
+	CubeEntity *entity = cube_pool.AllocateChunk();
+	entity = new(entity) CubeEntity();
+	cube_entities.emplace_back(entity);
+	entity->vao_id = loaded_meshes[CUBE_MESH_ID].getVAO();
+	entity->shader_id = loaded_shaders[CUBE_SHADER_ID].getID();
 //		EventLogger gui call?
-		num_cubes++;
-		break;	
-//
-//
-	case PLANE:
-		plane_entities.emplace_back(PlaneEntity());
-		num_planes++;
-		break;
-	}
+	num_cubes++;
+
+	return entity;
 }
 
-std::vector<CubeEntity>::const_iterator Scene::GetCubeEntityBufferStartIt() const
+void Scene::RemoveCubeEntity(CubeEntity *entity)
+{
+	cube_pool.FreeChunk(entity);
+	std::erase(cube_entities, entity);
+}
+
+std::vector<CubeEntity*>::const_iterator Scene::GetCubeEntityBufferStartIt() const
 {
 	return cube_entities.begin();
 }
 
-std::vector<CubeEntity>::const_iterator Scene::GetCubeEntityBufferEndIt() const
+std::vector<CubeEntity*>::const_iterator Scene::GetCubeEntityBufferEndIt() const
 {
 	return cube_entities.end();
 }
@@ -167,21 +163,23 @@ uint32_t Scene::GetShaderId(SHADER_INDEX_ID shader_id) const
 	return loaded_shaders[shader_id].getID();
 }
 
-void Scene::FreeAllocateBuffers()
+void Scene::AllocateBuffers()
 {
-	FreeBuffers();
-
+	cube_pool.Init(2000);
+	cube_entities.clear();
 	cube_entities.reserve(2000);
-	plane_entities.reserve(2000);
 
-	num_cubes = 0;
-	num_planes = 0;
 }
 
 void Scene::FreeBuffers()
 {
+	cube_pool.FreeAllChunks();
 	cube_entities.clear();
-	plane_entities.clear();
+	num_cubes = 0;
+
+
+
+
 }
 
 void Scene::LoadSceneMesh(MESH_INDEX_ID mesh_type)
@@ -218,30 +216,30 @@ void Scene::LoadAllShaders()
 void Scene::LoadDefaultScene()
 {
 
-	FreeAllocateBuffers();
+	FreeBuffers();
 	LoadAllMeshes();
 	LoadAllShaders();
 
 //	psudo-plane
-	AddEntity(CUBE);
-	cube_entities[num_cubes - 1].physics.inverseMass = 0.0f;
-	cube_entities[num_cubes - 1].physics.transform.scale = glm::vec3(25.0f, 0.0f, 25.0f);
-	cube_entities[num_cubes - 1].physics.transform.pos.y = -20.0f;
+	CubeEntity *entity = AddCubeEntity();
+	entity->physics.inverseMass = 0.0f;
+	entity->physics.transform.scale = glm::vec3(25.0f, 0.0f, 25.0f);
+	entity->physics.transform.pos.y = -5.0f;
 
-	AddEntity(CUBE);
-	cube_entities[num_cubes - 1].physics.transform.pos.x = 0;
-	cube_entities[num_cubes - 1].physics.transform.pos.y = 0;
-	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
+	entity = AddCubeEntity();
+	entity->physics.transform.pos.x = 0;
+	entity->physics.transform.pos.y = 0;
+	entity->physics.transform.pos.z = -3;
 
-	AddEntity(CUBE);
-	cube_entities[num_cubes - 1].physics.transform.pos.x = 3;
-	cube_entities[num_cubes - 1].physics.transform.pos.y = 5;
-	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
+	entity = AddCubeEntity();
+	entity->physics.transform.pos.x = 3;
+	entity->physics.transform.pos.y = 5;
+	entity->physics.transform.pos.z = -3;
 
-	AddEntity(CUBE);
-	cube_entities[num_cubes - 1].physics.transform.pos.x = -3;
-	cube_entities[num_cubes - 1].physics.transform.pos.y = 6;
-	cube_entities[num_cubes - 1].physics.transform.pos.z = -3;
+	entity = AddCubeEntity();
+	entity->physics.transform.pos.x = -3;
+	entity->physics.transform.pos.y = 6;
+	entity->physics.transform.pos.z = -3;
 
 
 }

@@ -13,7 +13,7 @@ typedef glm::mat4 mat4;
 
 #define DEFAULT_FOV ( glm::radians(45.0f) )
 #define DEFAULT_MOUSE_SENSITIVITY 0.1f
-#define DEFAULT_FLY_SPEED 20.0f
+#define DEFAULT_FLY_SPEED 75.0f
 #define DEFAULT_POSITION_VECTOR {0.0f, 1.0f, 1.0f} 
 #define DEFAULT_FORWARD_VECTOR {0.0f, 0.0f, -1.0f}
 #define DEFAULT_ROTATION_ANGLES {0.0f, -90.0f, 0.0f}

@@ -22,17 +22,16 @@ Transform::Transform(const float &posX, const float &posY, const float &posZ, co
 	pos.z = posZ;
 	
 	scale.x = scaleX;
-	scale.y = scaleY;
+	scale.y = scaleY; 
 	scale.z = scaleZ;
 
 	orientation = glm::quat(glm::vec3(rotX, rotY, rotZ));
-	glm::normalize(orientation);
 	updateWorldMatrix(); 
 }
 
 void Transform::updateWorldMatrix()
 {
-	glm::normalize(orientation);
+	orientation = glm::normalize(orientation);
 
 	glm::mat4 M(1.0f);
 	M = glm::translate(M, pos);

@@ -4,6 +4,7 @@
 #include <h/Renderer.h>
 #include <h/Scene.h>
 #include <h/Window.h>
+#include <h/GUI.h>
 #include <h/Events.h>
 
 namespace Hobbes
@@ -12,9 +13,9 @@ namespace Hobbes
 	{
 		GLFW::Window window;
 		Scene render_scene;
-		//Event Log/Queue?
-		//GUI
+		GUI gui;
 		bool running;
+//
 		RenderingEngine();
 		~RenderingEngine();
 		void Init();
