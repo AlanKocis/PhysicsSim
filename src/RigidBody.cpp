@@ -11,6 +11,7 @@ RigidBody::RigidBody()
 	angularDamping = 0.99f;
 	linearDamping = 0.99f;
 	shouldRender = true;
+	isAsleep = false;
 	inverseInertiaTensor = glm::mat3(1.0f);
 	inverseInertiaTensorWorld = glm::mat3(1.0f);
 }

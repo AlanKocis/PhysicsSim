@@ -101,6 +101,47 @@ void GL::DrawScene(const Scene& scene)
 	glBindVertexArray(0);
 }
 
+void GL::DrawScene_ID(const Scene & scene)
+{
+	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//
+	//
+	//	cube entities
+	Shader cube_shader = scene.GetShader(CUBE_SHADER_ID);
+
+	int vao = scene.GetVaoId(CUBE_MESH_ID);
+	//auto entity_it = scene.GetCubeEntityBufferStartIt();
+	//auto stop = scene.GetCubeEntityBufferEndIt();
+
+	glBindVertexArray(vao);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene.GetEboId(CUBE_MESH_ID));
+	cube_shader.UseProgram();
+
+
+	for (const EntityID &id : scene.id_list)
+	{
+		int p_index = scene.entity_physics_index_map.at(id);
+		int r_index = scene.render_component_index_map.at(id);
+
+		if (!scene.render_components.buffer[r_index].should_render)
+			continue;
+
+		cube_shader.setMat4("world", scene.physics_components.buffer[p_index].transform.worldMatrix);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	}
+
+	/*while (entity_it != stop)
+	{
+		cube_shader.setMat4("world", (*entity_it)->physics.transform.worldMatrix);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		++entity_it;
+	}
+	*/
+	glUseProgram(0);
+	glBindVertexArray(0);
+}
+
 void GL::Viewport(int width, int height)
 {
 	glViewport(0, 0, width, height);

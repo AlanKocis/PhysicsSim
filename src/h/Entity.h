@@ -2,11 +2,17 @@
 #define ENTITY_H
 
 #include <h/RigidBody.h>
+#include <stdint.h>
 
-enum EntityID
+typedef uint32_t EntityID;
+#define INVALID_INDEX -1
+
+class EntityManager
 {
-	CUBE, PLANE, 
-	NUM_ENTITIES
+private:
+	static EntityID id_gen;
+public:
+	static EntityID GenEntityID();
 };
 
 struct CubeEntity
@@ -29,5 +35,17 @@ struct PlaneEntity
 	PlaneEntity();
 };
 
+struct RenderComponent
+{
+	uint16_t vao_id;
+	uint16_t shader_id;
+	bool should_render = 0;
+};
+
+struct InstancedRenderComponent
+{
+	uint16_t vao_id;
+	uint16_t shader_id;
+};
 
 #endif

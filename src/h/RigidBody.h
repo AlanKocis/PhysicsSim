@@ -19,6 +19,7 @@ struct RigidBody
 	float linearDamping;
 	float angularDamping;
 	bool shouldRender;
+	bool isAsleep;
 	RigidBody();
 	//void loadRigidBody(EntityID id);
 	void integrate(float time);

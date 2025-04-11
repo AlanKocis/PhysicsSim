@@ -34,7 +34,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	
 
 
-
+	
 	static double _last_input_s = 0.0;
 	double _cooldown_s = 0.05;
 
@@ -47,52 +47,45 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 		if (t - _last_input_s >= _cooldown_s)
 		{
-			CubeEntity *cube_projectile = AddCubeEntity();
-			cube_projectile->physics.transform.pos = main_camera.getWorldPos();
+			EntityID projectile = AddCubeEntityIDv();
+			int p_index = entity_physics_index_map[projectile];
+			RigidBody *projectile_rb = &physics_components.buffer[p_index];
+			//CubeEntity *cube_projectile = AddCubeEntity();
+			projectile_rb->transform.pos = main_camera.getWorldPos();
 			glm::vec3 impulse = main_camera.getForwardVec();
 			impulse *= 20000;
 
-			float omega = 0.4 * sin(5 * t); //-.4 to 0.4
+			float omega = 0.4 * sin(0.005 * t); //-.4 to 0.4
 			float lambda = omega * omega * 2.0f; // positive only
 			//cube_projectile->physics.transform.scale = glm::vec3(lambda);
-			cube_projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
+			projectile_rb->addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
 		}
 	}
 
+	
 	static double _last_reset_s = 0.0;
 	double _reset_cooldown_s = 0.5;
 	if (window.KeyPressed(HOBBES_KEY_ESCAPE))
 	{
 		if (t - _last_reset_s >= _reset_cooldown_s)
 		{
-			this->LoadDefaultScene();
+			this->LoadIDTestScene();
 			_last_reset_s = t;
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //	physics
 // 	update uniforms
 
 // 
+// 
+// 
+
+
 //	cube entities
+	/*
 	for (CubeEntity *&entity : cube_entities)
 	{
 		entity->physics.integrate(delta_time);
@@ -101,7 +94,19 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 		loaded_shaders[CUBE_SHADER_ID].UseProgram();
 		loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
 		loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
+	}*/
+
+	for (int i = 0; i < ENTITY_ALLOC_COUNT; i++)
+	{
+		RigidBody *rb = &physics_components.buffer[i];
+		rb->integrate(delta_time);
+		rb->transform.updateWorldMatrix();
+		rb->GenerateCubeInertiaTensors();
+		loaded_shaders[CUBE_SHADER_ID].UseProgram();
+		loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
+		loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
 	}
+
 
 }
 
@@ -110,12 +115,29 @@ CubeEntity* Scene::AddCubeEntity()
 	CubeEntity *entity = cube_pool.AllocateChunk();
 	entity = new(entity) CubeEntity();
 	cube_entities.emplace_back(entity);
-	entity->vao_id = loaded_meshes[CUBE_MESH_ID].getVAO();
-	entity->shader_id = loaded_shaders[CUBE_SHADER_ID].getID();
 //		EventLogger gui call?
 	num_cubes++;
 
 	return entity;
+}
+
+EntityID Scene::AddCubeEntityIDv()
+{
+	EntityID id = EntityManager::GenEntityID();
+	int physics_index = physics_components.alloc();
+	int render_index = render_components.alloc();
+
+	entity_physics_index_map[id] = physics_index;
+	render_component_index_map[id] = render_index;
+
+	RigidBody* rb = new(&physics_components.buffer[physics_index]) RigidBody();
+	RenderComponent* rc = new(&render_components.buffer[render_index]) RenderComponent();
+
+	rc->vao_id = loaded_meshes[CUBE_MESH_ID].getVAO();
+	rc->shader_id = loaded_shaders[CUBE_SHADER_ID].getID();
+	rc->should_render = 1;
+	id_list.emplace_back(id);
+	return id;
 }
 
 void Scene::RemoveCubeEntity(CubeEntity *entity)
@@ -141,11 +163,7 @@ Shader Scene::GetShader(SHADER_INDEX_ID shader_id) const
 
 uint32_t Scene::GetEntityCount(EntityID entity_type) const
 {
-	switch (entity_type)
-	{
-	case CUBE:	return num_cubes;	break;
-	case PLANE:	return num_planes;	break;
-	}
+	return 0;
 }
 
 uint32_t Scene::GetVaoId(MESH_INDEX_ID mesh_type) const
@@ -173,12 +191,15 @@ void Scene::AllocateBuffers()
 
 void Scene::FreeBuffers()
 {
+	entity_physics_index_map.clear();
+	render_component_index_map.clear();
+	id_list.clear();
 	cube_pool.FreeAllChunks();
 	cube_entities.clear();
 	num_cubes = 0;
 
-
-
+	physics_components.free_all();
+	render_components.free_all();
 
 }
 
@@ -242,4 +263,48 @@ void Scene::LoadDefaultScene()
 	entity->physics.transform.pos.z = -3;
 
 
+}
+
+void Scene::LoadIDTestScene()
+{
+	FreeBuffers();
+	LoadAllMeshes();
+	LoadAllShaders();
+
+	entity_physics_index_map.reserve(ENTITY_ALLOC_COUNT);
+	entity_physics_index_map.reserve(ENTITY_ALLOC_COUNT);
+	id_list.reserve(ENTITY_ALLOC_COUNT);
+
+	EntityID plane = AddCubeEntityIDv();
+	int p_index = entity_physics_index_map[plane];
+	RigidBody *t = &physics_components.buffer[p_index];
+	t->inverseMass = 0.0f;
+	t->transform.scale = glm::vec3(25.0f, 0.0f, 25.0f);
+	t->transform.pos.y = -5.0f;
+
+
+
+	EntityID cube = AddCubeEntityIDv();
+	p_index = entity_physics_index_map[cube];
+
+	t = &physics_components.buffer[p_index];
+	t->transform.pos.x = -2;
+	t->transform.pos.y = 3;
+	t->transform.pos.z = -3;
+
+	cube = AddCubeEntityIDv();
+	p_index = entity_physics_index_map[cube];
+
+	t = &physics_components.buffer[p_index];
+	t->transform.pos.x = 1;
+	t->transform.pos.y = 0;
+	t->transform.pos.z = -1;
+
+	cube = AddCubeEntityIDv();
+	p_index = entity_physics_index_map[cube];
+
+	t = &physics_components.buffer[p_index];
+	t->transform.pos.x = 2;
+	t->transform.pos.y = 1;
+	t->transform.pos.z = 3;
 }

@@ -13,7 +13,7 @@ void Hobbes::RenderingEngine::Init()
 	GLFW::Window::Init();
 	window.CreateWindow(GLFW::CursorModes::HiddenConfined);
 	GL::InitRenderer();
-	render_scene.LoadDefaultScene();
+	render_scene.LoadIDTestScene();
 	EventQueue &_InitEventQSingleton = EventQueue::Instance();
 	running = true;
 }
@@ -36,7 +36,7 @@ void Hobbes::RenderingEngine::Run()
 
 //		Render pass
 		render_scene.UpdateScene(window, dt);
-		GL::DrawScene(render_scene);
+		GL::DrawScene_ID(render_scene);
 
 		uint32_t w, h;
 		w = window.GetWidth();
