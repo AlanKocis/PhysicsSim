@@ -101,7 +101,7 @@ void GL::DrawScene(const Scene& scene)
 	glBindVertexArray(0);
 }
 
-void GL::DrawScene_ID(const Scene & scene)
+void GL::DrawScene_ID(Scene &scene)
 {
 	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -117,27 +117,30 @@ void GL::DrawScene_ID(const Scene & scene)
 	glBindVertexArray(vao);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene.GetEboId(CUBE_MESH_ID));
 	cube_shader.UseProgram();
+	cube_shader.setMat4("view", scene.main_camera.getViewMatrix());
+	cube_shader.setMat4("proj", scene.main_camera.getProjectionMatrix());
 
 
-	for (const EntityID &id : scene.id_list)
+	/*for (const RigidBody &rb : scene.rigid_body_components.components)
 	{
-		int p_index = scene.entity_physics_index_map.at(id);
-		int r_index = scene.render_component_index_map.at(id);
-
-		if (!scene.render_components.buffer[r_index].should_render)
-			continue;
-
-		cube_shader.setMat4("world", scene.physics_components.buffer[p_index].transform.worldMatrix);
+		cube_shader.setMat4("world", rb.transform.worldMatrix);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	}
 
-	/*while (entity_it != stop)
-	{
-		cube_shader.setMat4("world", (*entity_it)->physics.transform.worldMatrix);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		++entity_it;
 	}
 	*/
+
+	for (int id = 0; id < EntityManager::GetNumActiveEntities(); id++)
+	{
+		RenderComponent &ren = scene.render_components[id];
+		if (ren.should_render)
+		{
+			RigidBody &rb = scene.rigid_body_components[id];
+			glBindVertexArray(ren.vao_id);
+			cube_shader.setMat4("world", rb.transform.worldMatrix);
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		}
+	}
+	
 	glUseProgram(0);
 	glBindVertexArray(0);
 }

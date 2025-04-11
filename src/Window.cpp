@@ -26,6 +26,11 @@ void GLFW::Window::Update()
 	glfwPollEvents();
 }
 
+void GLFW::Window::SetTitleText(const char *t)
+{
+	glfwSetWindowTitle(window_ptr, t);
+}
+
 int GLFW::Window::ShouldClose() const
 {
 	return glfwWindowShouldClose(window_ptr);

@@ -9,6 +9,6 @@
 #define GIGABYTE (1024 * 1024 * 1024)
 #define DEFAULT_ALIGNMENT 8
 #define OPENGL_VERSION "#version 330"
-#define ENTITY_ALLOC_COUNT 3000
+#define ENTITY_ALLOC_COUNT 4096
 
 #endif

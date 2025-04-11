@@ -10,6 +10,7 @@
 #include <h/StaticPool.h>
 #include <unordered_map>
 #include <stdint.h>
+#include <time.h>
 
 struct Scene
 {
@@ -20,11 +21,14 @@ struct Scene
 	MemoryPool<CubeEntity> cube_pool;
 	std::vector<CubeEntity*> cube_entities;
 
-	std::vector<EntityID> id_list;
-	hobPool<RigidBody> physics_components;
-	hobPool<RenderComponent> render_components;
-	std::unordered_map<uint32_t, uint32_t> entity_physics_index_map;
-	std::unordered_map<uint32_t, uint32_t> render_component_index_map;
+	//std::vector<EntityID> id_list;
+	//hobPool<RigidBody> physics_components;
+	//hobPool<RenderComponent> render_components;
+	//std::unordered_map<uint32_t, uint32_t> entity_physics_index_map;
+	//std::unordered_map<uint32_t, uint32_t> render_component_index_map;
+
+	EntityComponentBuffer<RigidBody> rigid_body_components;
+	EntityComponentBuffer<RenderComponent> render_components;
 
 	GLmesh loaded_meshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];
@@ -48,7 +52,7 @@ struct Scene
 	void LoadIDTestScene();
 	void UpdateScene(const GLFW::Window& window, float delta_time);
 	CubeEntity* AddCubeEntity();	//send an event to gui class?
-	EntityID AddCubeEntityIDv();
+	EntityID AddCubeEntityID();
 	void RemoveCubeEntity(CubeEntity *entity);
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferStartIt() const;
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferEndIt() const;

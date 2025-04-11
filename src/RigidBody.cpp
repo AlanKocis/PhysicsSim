@@ -29,9 +29,9 @@ void RigidBody::integrate(float time)
 	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * sumTorques; 
 	 
 
-	lastFrameAcceleration += glm::vec3(0, -3, 0);
-	if (transform.pos.y <= -5.0f)
-		lastFrameAcceleration += glm::vec3(0, 8, 0);
+	lastFrameAcceleration += glm::vec3(0, -9, 0);
+	//if (transform.pos.y <= -5.0f)
+		//lastFrameAcceleration += glm::vec3(0, 8, 0);
 	           
 
 	velocity += lastFrameAcceleration * time;

@@ -15,3 +15,13 @@ EntityID EntityManager::GenEntityID()
 {
 	return (id_gen++);
 }
+
+void EntityManager::ResetIDs()
+{
+	id_gen = 0;
+}
+
+int EntityManager::GetNumActiveEntities()
+{
+	return id_gen;
+}

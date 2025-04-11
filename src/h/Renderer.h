@@ -9,7 +9,7 @@ namespace GL
 	void InitRenderer();
 	void StartRenderPass();
 	void DrawScene(const Scene& scene);
-	void DrawScene_ID(const Scene& scene);
+	void DrawScene_ID(Scene& scene);
 	void Viewport(int width, int height);
 };
 

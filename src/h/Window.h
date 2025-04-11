@@ -33,6 +33,7 @@ namespace GLFW
 		~Window();
 //
 		void Update();
+		void SetTitleText(const char *t);
 		void DestroyWindow();
 		void CreateWindow();
 		void CreateWindow(CursorModes cursor_mode);
