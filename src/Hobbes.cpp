@@ -63,7 +63,7 @@ void Hobbes::RenderingEngine::Run()
 
 //		Render pass
 		render_scene.UpdateScene(window, dt);
-		GL::DrawScene_ID(render_scene);
+		GL::DrawScene_instanced(render_scene);
 
 		uint32_t w, h;
 		w = window.GetWidth();

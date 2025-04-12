@@ -30,8 +30,8 @@ void RigidBody::integrate(float time)
 	 
 
 	lastFrameAcceleration += glm::vec3(0, -9, 0);
-	//if (transform.pos.y <= -5.0f)
-		//lastFrameAcceleration += glm::vec3(0, 8, 0);
+	if (transform.pos.y <= -5.0f)
+		lastFrameAcceleration += glm::vec3(0, 10, 0);
 	           
 
 	velocity += lastFrameAcceleration * time;

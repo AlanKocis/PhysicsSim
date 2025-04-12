@@ -65,7 +65,7 @@ void GLFW::Window::CreateWindow()
 		monitorX + (videoMode->width - DEFAULT_WINDOW_WIDTH) / 2,
 		monitorY + (videoMode->height - DEFAULT_WINDOW_HEIGHT) / 2);
 	glfwShowWindow(window_ptr);
-
+	glfwSwapInterval(0);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{

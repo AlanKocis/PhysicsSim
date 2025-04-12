@@ -22,19 +22,19 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	if (t > 0.5)
 	{
 		//window.SetCursorMode(GLFW::CursorModes::Visible);
-		main_camera.updateMousePos(x_offset, y_offset);
 
 	}
+
+	main_camera.processCameraMovement(window, delta_time);
+
+	//main_camera.updateMousePos(500.0 * delta_time, 0.0);
+	main_camera.updateMousePos(x_offset, y_offset);
 
 	static float n = 0.0f;
 	n += 0.5 * delta_time;
 	uint32_t ms = t * 1000;
 
-	main_camera.processCameraMovement(window, delta_time);
-	
 
-
-	
 	static double _last_input_s = 0.0;
 	double _cooldown_s = 0.05;
 
@@ -103,12 +103,17 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 		rb.integrate(delta_time);
 		rb.transform.updateWorldMatrix();
 		rb.GenerateCubeInertiaTensors();
+
 		//loaded_shaders[CUBE_SHADER_ID].UseProgram();
 		//loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
 		//loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
 	}
 	
-	
+	for (int id = 0; id < EntityManager::GetNumActiveEntities(); id++)
+	{
+		matrix_transform_components[id] = rigid_body_components[id].transform.worldMatrix;
+	}
+
 }
 
 CubeEntity* Scene::AddCubeEntity()
@@ -130,6 +135,7 @@ EntityID Scene::AddCubeEntityID()
 	GLuint vao = loaded_meshes[CUBE_MESH_ID].getVAO();
 	GLuint shader = loaded_shaders[CUBE_SHADER_ID].getID();
 	render_components.AddComponent(id, { vao, shader, 1 });
+	matrix_transform_components.AddComponent(id, glm::mat4(1.0f));
 
 	return id;
 }
@@ -194,6 +200,8 @@ void Scene::FreeBuffers()
 
 	rigid_body_components.FreeReallocBuffers();
 	render_components.FreeReallocBuffers();
+	matrix_transform_components.FreeReallocBuffers();
+
 	EntityManager::ResetIDs();
 
 }
@@ -213,8 +221,9 @@ void Scene::LoadSceneShader(SHADER_INDEX_ID shader_id)
 	Shader &shader = loaded_shaders[shader_id];
 	switch (shader_id)
 	{
-	case CUBE_SHADER_ID:	shader.loadShaderProgram("cubevertex.glsl", "cubefragment.glsl");	break;
-	case PLANE_SHADER_ID:	break;
+	case CUBE_SHADER_ID:			shader.loadShaderProgram("cubevertex.glsl", "cubefragment.glsl");			break;
+	case CUBE_INSTANCED_SHADER_ID:	shader.loadShaderProgram("cubeInstancedVert.glsl", "cubefragment.glsl");		break;
+	case PLANE_SHADER_ID:			break;
 	}
 }
 
@@ -282,14 +291,16 @@ void Scene::LoadDefaultScene()
 			z
 		);
 		glm::vec3 randomForce(
-			std::rand() % 200,
-			std::rand() % 200,
-			std::rand() % 200);
-		entity->physics.addForceAtBodyPoint(randomForce, glm::vec3(0.2, 0.4, 0.3));
+			std::rand() / (float)RAND_MAX * 2000,
+			std::rand() % 2000,
+			std::rand() % 2000);
+
+		glm::vec3 randomBodyPoint(
+			std::rand() / (float)RAND_MAX * 0.5f
+		);
+
+		entity->physics.addForceAtBodyPoint(randomForce, randomBodyPoint);
 	}
-
-
-
 
 }
 
@@ -332,9 +343,9 @@ void Scene::LoadIDTestScene()
 	// Y variation range
 	const float y_variation = 0.1f;
 
-	float scale = 0.5f;
+	float scale = 0.2f;
 
-	for (int i = 0; i < 3000; i++) {
+	for (int i = 0; i < 1000; i++) {
 		// Base position in cube (-1 to 1 range)
 		float x = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;

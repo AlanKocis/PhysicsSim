@@ -11,8 +11,8 @@ namespace Hobbes
 {
 	struct RenderingEngine
 	{
-		GLFW::Window window;
 		Scene render_scene;
+		GLFW::Window window;
 		GUI gui;
 		bool running;
 //

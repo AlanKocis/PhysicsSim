@@ -145,6 +145,80 @@ void GL::DrawScene_ID(Scene &scene)
 	glBindVertexArray(0);
 }
 
+void GL::DrawScene_instanced(Scene &scene)
+{
+	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//
+	//
+	//	cube entities
+	Shader cube_shader = scene.GetShader(CUBE_SHADER_ID);
+
+	int vao = scene.GetVaoId(CUBE_MESH_ID);
+	//auto entity_it = scene.GetCubeEntityBufferStartIt();
+	//auto stop = scene.GetCubeEntityBufferEndIt();
+
+	glBindVertexArray(vao);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene.GetEboId(CUBE_MESH_ID));
+	cube_shader.UseProgram();
+	cube_shader.setMat4("view", scene.main_camera.getViewMatrix());
+	cube_shader.setMat4("proj", scene.main_camera.getProjectionMatrix());
+
+
+	/*for (const RigidBody &rb : scene.rigid_body_components.components)
+	{
+		cube_shader.setMat4("world", rb.transform.worldMatrix);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	}
+	*/
+
+
+	int instance_count = EntityManager::GetNumActiveEntities();
+
+	GLuint matrices_vbo;
+	glGenBuffers(1, &matrices_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, matrices_vbo);
+	glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(glm::mat4), &scene.matrix_transform_components.components[0], GL_DYNAMIC_DRAW);
+
+
+	std::size_t vec4Size = sizeof(glm::vec4);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)0);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)(1 * vec4Size));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)(2 * vec4Size));
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)(3 * vec4Size));
+
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
+
+	//glBindVertexArray(0);
+	glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0, instance_count); 
+
+	glDeleteBuffers(1, &matrices_vbo);
+	/*
+	//glDrawArraysInstanced()
+	for (int id = 0; id < EntityManager::GetNumActiveEntities(); id++)
+	{
+		RenderComponent &ren = scene.render_components[id];
+		if (ren.should_render)
+		{
+			RigidBody &rb = scene.rigid_body_components[id];
+			glBindVertexArray(ren.vao_id);
+			cube_shader.setMat4("world", rb.transform.worldMatrix);
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		}
+	}
+	*/
+	glUseProgram(0);
+	glBindVertexArray(0);
+}
+
 void GL::Viewport(int width, int height)
 {
 	glViewport(0, 0, width, height);

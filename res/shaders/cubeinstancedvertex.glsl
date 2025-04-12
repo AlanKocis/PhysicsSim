@@ -1,9 +1,7 @@
 #version 330 core
 
 layout(location = 0) in vec3 aPos;
-
-layout(location = 3) in mat4 transformMatrix;
-//layout(location = 1) in vec3 aNormal;
+layout(location = 1) in mat4 transformMatrix;
 
 uniform mat4 view;
 uniform mat4 proj;
@@ -13,7 +11,7 @@ out vec3 _pos;
 
 void main()
 {
-	gl_Position = proj * view * transformMatrix * vec4(aPos, 1.0);
+	gl_Position = proj * view * world * vec4(aPos, 1.0);
 	_pos = aPos;
 	//gl_Position = vec4(aPos, 1.0);
-} 
+}

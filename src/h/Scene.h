@@ -18,17 +18,15 @@ struct Scene
 //	resources
 	Camera main_camera;
 //
+	//dogshit
 	MemoryPool<CubeEntity> cube_pool;
 	std::vector<CubeEntity*> cube_entities;
 
-	//std::vector<EntityID> id_list;
-	//hobPool<RigidBody> physics_components;
-	//hobPool<RenderComponent> render_components;
-	//std::unordered_map<uint32_t, uint32_t> entity_physics_index_map;
-	//std::unordered_map<uint32_t, uint32_t> render_component_index_map;
 
+	// 10 billion fps
 	EntityComponentBuffer<RigidBody> rigid_body_components;
 	EntityComponentBuffer<RenderComponent> render_components;
+	EntityComponentBuffer<glm::mat4> matrix_transform_components;
 
 	GLmesh loaded_meshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];
