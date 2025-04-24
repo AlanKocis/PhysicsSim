@@ -36,7 +36,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 
 	static double _last_input_s = 0.0;
-	double _cooldown_s = 0.05;
+	double _cooldown_s = 0.1;
 
 	if (window.KeyPressed(HOBBES_KEY_SPACE))
 	{
@@ -47,7 +47,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 		if (t - _last_input_s >= _cooldown_s)
 		{
-			CubeEntity *projectile = AddCubeEntity();
+			/*CubeEntity *projectile = AddCubeEntity();
 	
 	
 			//CubeEntity *cube_projectile = AddCubeEntity();
@@ -60,6 +60,16 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 			//cube_projectile->physics.transform.scale = glm::vec3(lambda);
 			projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
+			*/
+
+			EntityID projectile = AddCubeEntityID();
+			rigid_body_components[projectile].transform.pos = main_camera.getWorldPos();
+
+			glm::vec3 impulse = main_camera.getForwardVec();
+			impulse *= 500000000 * delta_time;
+			float omega = 0.4 * sin(0.005 * t); //-.4 to 0.4
+			float lambda = omega * omega * 2.0f; // positive only
+			rigid_body_components[projectile].addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 		}
 	}
 
@@ -90,14 +100,26 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 		entity->physics.integrate(delta_time);
 		entity->physics.transform.updateWorldMatrix();
 		entity->physics.GenerateCubeInertiaTensors();
-		loaded_shaders[CUBE_SHADER_ID].UseProgram();
-		loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
-		loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
 	}
+
+
+
+
 	*/
-	
+
 
 	
+	for (int i = 0; i < EntityManager::GetNumActiveEntities(); i++)
+	{
+		rigid_body_components[i].integrate(delta_time);
+		rigid_body_components[i].transform.updateWorldMatrix();
+		rigid_body_components[i].GenerateCubeInertiaTensors();
+		matrix_transform_components[i] = rigid_body_components[i].transform.worldMatrix;
+	}
+	
+	
+
+	/*
 	for (RigidBody &rb : rigid_body_components.components)
 	{
 		rb.integrate(delta_time);
@@ -108,12 +130,9 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 		//loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
 		//loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
 	}
-	
-	for (int id = 0; id < EntityManager::GetNumActiveEntities(); id++)
-	{
-		matrix_transform_components[id] = rigid_body_components[id].transform.worldMatrix;
-	}
+	*/
 
+	
 }
 
 CubeEntity* Scene::AddCubeEntity()
@@ -276,7 +295,7 @@ void Scene::LoadDefaultScene()
 	// Y variation range
 	const float y_variation = 0.1f;
 
-	for (int i = 0; i < 3000; i++) {
+	for (int i = 0; i < 9000; i++) {
 		// Base position in cube (-1 to 1 range)
 		float x = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;
@@ -337,15 +356,15 @@ void Scene::LoadIDTestScene()
 	srand((unsigned int)time(NULL));
 
 	// Cube dimensions (2x2x2 centered at origin)
-	const float cube_size = 100.0f;
+	const float cube_size = 100.0f; 
 	const float half_size = cube_size / 2.0f;
 
 	// Y variation range
 	const float y_variation = 0.1f;
 
-	float scale = 0.2f;
+	float scale = 0.5f;
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 9000; i++) {
 		// Base position in cube (-1 to 1 range)
 		float x = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;

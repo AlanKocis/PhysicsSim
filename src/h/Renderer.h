@@ -10,7 +10,8 @@ namespace GL
 	void StartRenderPass();
 	void DrawScene(const Scene& scene);
 	void DrawScene_ID(Scene& scene);
-	void DrawScene_instanced(Scene &scene);
+	void DrawScene_ID_instanced(Scene &scene);
+	void DrawScene_ptr_instanced(Scene &scene);
 	void Viewport(int width, int height);
 };
 

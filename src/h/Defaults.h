@@ -10,6 +10,6 @@
 #define DEFAULT_ALIGNMENT 8
 #define OPENGL_VERSION "#version 330"
 
-#define ENTITY_ALLOC_COUNT 4096
+#define ENTITY_ALLOC_COUNT 10000
 
 #endif
