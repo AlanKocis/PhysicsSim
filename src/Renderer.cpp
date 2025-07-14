@@ -148,7 +148,7 @@ void GL::DrawScene_ID(Scene &scene)
 
 void GL::DrawScene_ID_instanced(Scene &scene)
 {
-	glClearColor(0.1F, 0.1F, 0.1f, 1.0f);
+	glClearColor(0.0F, 0.0F, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//
 	//
@@ -315,3 +315,6 @@ void GL::Viewport(int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
+
+
+

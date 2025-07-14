@@ -34,8 +34,6 @@ public:
 	T *AllocateChunk();
 	void FreeChunk(T *chunk_ptr);
 	void FreeAllChunks();
-
-
 };
 
 template<typename T>

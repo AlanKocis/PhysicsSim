@@ -36,7 +36,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 
 	static double _last_input_s = 0.0;
-	double _cooldown_s = 0.1;
+	double _cooldown_s = 0.4;
 
 	if (window.KeyPressed(HOBBES_KEY_SPACE))
 	{
@@ -61,19 +61,23 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 			projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
 			*/
+			
 
 			EntityID projectile = AddCubeEntityID();
 			rigid_body_components[projectile].transform.pos = main_camera.getWorldPos();
 
 			glm::vec3 impulse = main_camera.getForwardVec();
-			impulse *= 500000000 * delta_time;
-			float omega = 0.4 * sin(0.005 * t); //-.4 to 0.4
-			float lambda = omega * omega * 2.0f; // positive only
+			impulse *= 50000000 * delta_time;
+			float omega = 0.1 * sin(0.005 * t); //-.4 to 0.4
 			rigid_body_components[projectile].addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
+			_last_input_s = t;
 		}
 	}
 
 	
+
+
+
 	static double _last_reset_s = 0.0;
 	double _reset_cooldown_s = 0.5;
 	if (window.KeyPressed(HOBBES_KEY_ESCAPE))
@@ -213,7 +217,7 @@ void Scene::FreeBuffers()
 	//entity_physics_index_map.clear();
 	//render_component_index_map.clear();
 	//id_list.clear();
-	cube_pool.FreeAllChunks();
+	cube_pool.FreeAllChunks(); 
 	cube_entities.clear();
 	num_cubes = 0;
 
@@ -368,7 +372,7 @@ void Scene::LoadIDTestScene()
 		// Base position in cube (-1 to 1 range)
 		float x = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;
-		float base_y = (rand() / (float)RAND_MAX) * cube_size - half_size;
+		float base_y = ((rand() / (float)RAND_MAX) * cube_size - half_size) + 35;
 
 		cube = AddCubeEntityID();
 		t = &rigid_body_components[cube];

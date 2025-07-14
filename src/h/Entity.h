@@ -24,6 +24,7 @@ struct EntityComponentBuffer
 {
 	std::vector<T> components;			//dense
 	std::vector<EntityID> lookup;		//sparse
+	int max_allocated_id = 0;
 
 	void AddComponent(EntityID id, const T& component);
 	void FreeReallocBuffers();
