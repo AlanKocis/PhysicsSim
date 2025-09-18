@@ -21,6 +21,7 @@ struct RigidBody
 	bool shouldRender;
 	bool isAsleep;
 	RigidBody();
+	RigidBody(const Transform &transform);
 	//void loadRigidBody(EntityID id);
 	void integrate(float time);
 	//void updateMatrices();

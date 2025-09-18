@@ -16,6 +16,23 @@ RigidBody::RigidBody()
 	inverseInertiaTensorWorld = glm::mat3(1.0f);
 }
 
+RigidBody::RigidBody(const Transform &transform)
+{
+	velocity = { 0, 0, 0 };
+	angularVelocity = { 0, 0, 0 };
+	acceleration = { 0, 0, 0 };
+	sumForces = { 0, 0, 0 };
+	sumTorques = { 0, 0, 0 };
+	inverseMass = 0.5f;
+	angularDamping = 0.99f;
+	linearDamping = 0.99f;
+	shouldRender = true;
+	isAsleep = false;
+	inverseInertiaTensor = glm::mat3(1.0f);
+	inverseInertiaTensorWorld = glm::mat3(1.0f);
+	this->transform = transform;
+}
+
 void RigidBody::integrate(float time)
 {
 	if (this->inverseMass <= 0.0F)

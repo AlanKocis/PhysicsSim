@@ -55,9 +55,8 @@ void Hobbes::RenderingEngine::Run()
 			fps_timer = 0.0;
 		}
 
-		snprintf(str, 50, "%d entities  -  %.3f fps", EntityManager::GetNumActiveEntities(), avg_fps);
-		//snprintf(str, 50, "%d entities  -  %.3f fps", (int)render_scene.cube_entities.size(), avg_fps);
-
+		//	printf to string for glfw window text
+		snprintf(str, 50, "%d entities  -  %.3f fps", render_scene.GetEntityCount(CUBE), avg_fps);
 		window.SetTitleText(str);
 
 

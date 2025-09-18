@@ -4,7 +4,7 @@
 #include <h/Defaults.h>
 #include <vector>
 
-#define INVALID_INDEX -1
+#define INVALID_ID -1
 
 template <typename T>
 struct hobPool
@@ -40,7 +40,7 @@ template<typename T>
 inline int hobPool<T>::alloc()
 {
 	if (free_list.empty())
-		return INVALID_INDEX;
+		return INVALID_ID;
 
 	int index = free_list.back();
 	free_list.pop_back();

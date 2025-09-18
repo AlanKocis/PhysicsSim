@@ -61,13 +61,14 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 			projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
 			*/
-			
-
-			EntityID projectile = AddCubeEntityID();
-			rigid_body_components[projectile].transform.pos = main_camera.getWorldPos();
+			glm::vec3 worldPos = main_camera.getWorldPos();
+			Transform proj_tf = Transform(worldPos.x, worldPos.y, worldPos.z, 1, 1, 1, 0, 0, 0);
+			EntityID projectile = AddCubeEntityID(proj_tf);
 
 			glm::vec3 impulse = main_camera.getForwardVec();
-			impulse *= 50000000 * delta_time;
+			int len = impulse.length();
+			impulse /= len;
+			impulse *= (50000);
 			float omega = 0.1 * sin(0.005 * t); //-.4 to 0.4
 			rigid_body_components[projectile].addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
@@ -84,7 +85,13 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	{
 		if (t - _last_reset_s >= _reset_cooldown_s)
 		{
-			this->LoadIDTestScene();
+			//this->LoadIDTestScene();
+			while (!cube_entity_ids.empty())
+			{
+				RemoveCubeEntity(cube_entity_ids.front());
+			}
+
+
 			_last_reset_s = t;
 		}
 	}
@@ -113,12 +120,26 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 
 	
-	for (int i = 0; i < EntityManager::GetNumActiveEntities(); i++)
+	for (EntityID i : cube_entity_ids)
 	{
+		glm::vec3 pos_naught = rigid_body_components[i].transform.pos;
+
 		rigid_body_components[i].integrate(delta_time);
 		rigid_body_components[i].transform.updateWorldMatrix();
-		rigid_body_components[i].GenerateCubeInertiaTensors();
+		rigid_body_components[i].GenerateCubeInertiaTensors();		// not sure, but i think this doesnt have to be done each frame, update once when changing dimensions?
 		matrix_transform_components[i] = rigid_body_components[i].transform.worldMatrix;
+
+		glm::vec3 pos_diff = rigid_body_components[i].transform.pos - pos_naught;
+		if (BVHTree.id_lookup.Exists(i))
+		{
+			BoundingSphere other = BVHTree.id_lookup[i]->volume;
+			float new_radius = glm::length(rigid_body_components[i].transform.scale) * 0.5f;
+			if (glm::length(pos_diff) > other.radius)
+			{
+				BVHTree.RemoveEntity(i);
+				BVHTree.AddEntity(i, BoundingSphere(rigid_body_components[i].transform.pos, new_radius));
+			}
+		}
 	}
 	
 	
@@ -139,34 +160,73 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	
 }
 
-CubeEntity* Scene::AddCubeEntity()
-{
-	CubeEntity *entity = cube_pool.AllocateChunk();
-	entity = new(entity) CubeEntity();
-	cube_entities.emplace_back(entity);
-//		EventLogger gui call?
-	num_cubes++;
 
-	return entity;
-}
-
-EntityID Scene::AddCubeEntityID()
+EntityID Scene::AddCubeEntityID(const Transform &transform)
 {
 	EntityID id = EntityManager::GenEntityID();
+	cube_entity_ids.push_back(id);
 
-	rigid_body_components.AddComponent(id, RigidBody());
+	rigid_body_components.AddComponent(id, RigidBody(transform));
 	GLuint vao = loaded_meshes[CUBE_MESH_ID].getVAO();
 	GLuint shader = loaded_shaders[CUBE_SHADER_ID].getID();
 	render_components.AddComponent(id, { vao, shader, 1 });
 	matrix_transform_components.AddComponent(id, glm::mat4(1.0f));
 
+	float radius = glm::max(transform.scale.x, transform.scale.y);
+	radius = glm::max(radius, transform.scale.z);
+
+	BVHTree.AddEntity(id, BoundingSphere(transform.pos, radius));
+
+	/*BVHNode<BoundingSphere> *bsp_ptr;
+	if (!bsp_root)
+	{
+		bsp_root = new BVHNode<BoundingSphere>(NULL, BoundingSphere(transform.pos, radius), id);
+		bsp_ptr = bsp_root;
+	}
+	else
+	{
+		bsp_ptr = bsp_root->insert(id, BoundingSphere(transform.pos, radius));
+	}
+	bsp_components.AddComponent(id, bsp_ptr);
+
+	printf("root id after AddCubeEntity(): %I64d\n", id);
+	*/
+
+
 	return id;
+}
+
+void Scene::RemoveCubeEntity(EntityID id)
+{
+	assert(cube_entity_ids.size() > 0);
+
+	rigid_body_components.RemoveComponent(id);
+	render_components.RemoveComponent(id);
+	matrix_transform_components.RemoveComponent(id);
+	//delete bsp_components[id];
+	printf("Deleted entity %I64d\n", id);
+	// bsp tree requires refitting
+	//bsp_components.FreeReallocBuffers();  instead of doing expensive reallocs, just use id access to reassign pointers                  
+	//printf("root id = %%I64d after RemoveCubeEntity()\n", bsp_root->entity_id);
+	//bsp_root->traverseRehashIDs(bsp_root, bsp_components);
+
+	EntityManager::RecycleEntityID(id);
+	BVHTree.RemoveEntity(id);
+
+	auto it = std::find(cube_entity_ids.begin(), cube_entity_ids.end(), id);
+	if (cube_entity_ids.size() > 1)
+	{
+		std::swap(*it, cube_entity_ids[cube_entity_ids.size() - 1]);
+	}
+	cube_entity_ids.pop_back();
+
+
 }
 
 void Scene::RemoveCubeEntity(CubeEntity *entity)
 {
-	cube_pool.FreeChunk(entity);
-	std::erase(cube_entities, entity);
+	//cube_pool.FreeChunk(entity);
+	//std::erase(cube_entities, entity);
 }
 
 std::vector<CubeEntity*>::const_iterator Scene::GetCubeEntityBufferStartIt() const
@@ -186,7 +246,11 @@ Shader Scene::GetShader(SHADER_INDEX_ID shader_id) const
 
 uint32_t Scene::GetEntityCount(EntityID entity_type) const
 {
-	return 0;
+	switch (entity_type)
+	{
+	case CUBE:
+		return cube_entity_ids.size();
+	}
 }
 
 uint32_t Scene::GetVaoId(MESH_INDEX_ID mesh_type) const
@@ -209,7 +273,7 @@ void Scene::AllocateBuffers()
 	cube_pool.Init(ENTITY_ALLOC_COUNT);
 	cube_entities.clear();
 	cube_entities.reserve(ENTITY_ALLOC_COUNT);
-
+	cube_entity_ids.reserve(ENTITY_ALLOC_COUNT);
 }
 
 void Scene::FreeBuffers()
@@ -224,9 +288,11 @@ void Scene::FreeBuffers()
 	rigid_body_components.FreeReallocBuffers();
 	render_components.FreeReallocBuffers();
 	matrix_transform_components.FreeReallocBuffers();
-
+	cube_entity_ids.clear();
 	EntityManager::ResetIDs();
 
+	//delete bsp_root;
+	//bsp_root = nullptr;
 }
 
 void Scene::LoadSceneMesh(MESH_INDEX_ID mesh_type)
@@ -263,13 +329,13 @@ void Scene::LoadAllShaders()
 
 void Scene::LoadDefaultScene()
 {
-
+	/*
 	FreeBuffers();
 	LoadAllMeshes();
 	LoadAllShaders();
 
 //	psudo-plane
-	CubeEntity *entity = AddCubeEntity();
+	//CubeEntity *entity = AddCubeEntity();
 	entity->physics.inverseMass = 0.0f;
 	entity->physics.transform.scale = glm::vec3(25.0f, 0.0f, 25.0f);
 	entity->physics.transform.pos.y = -5.0f;
@@ -314,16 +380,17 @@ void Scene::LoadDefaultScene()
 			z
 		);
 		glm::vec3 randomForce(
-			std::rand() / (float)RAND_MAX * 2000,
-			std::rand() % 2000,
-			std::rand() % 2000);
+			0, 1, 0
+		);
 
 		glm::vec3 randomBodyPoint(
-			std::rand() / (float)RAND_MAX * 0.5f
+			(std::rand() / (float)RAND_MAX)
+
 		);
 
 		entity->physics.addForceAtBodyPoint(randomForce, randomBodyPoint);
 	}
+	*/
 
 }
 
@@ -333,40 +400,46 @@ void Scene::LoadIDTestScene()
 	LoadAllMeshes();
 	LoadAllShaders();
 
-	EntityID plane = AddCubeEntityID();
+
+	Transform tf = Transform(0, 0, 0, 1, 1, 1, 0, 0, 0);
+	EntityID plane = AddCubeEntityID(tf);
 	RigidBody *t = &rigid_body_components[plane];
 	t->inverseMass = 0.0f;
 	t->transform.scale = glm::vec3(100.0f, 0.0f, 100.0f);
 	t->transform.pos.y = -5.0f;
 
-	EntityID cube = AddCubeEntityID();
-	t = &rigid_body_components[cube];
-	t->transform.pos.x = -2;
-	t->transform.pos.y = 3;
-	t->transform.pos.z = -3;
-
-	cube = AddCubeEntityID();
-	t = &rigid_body_components[cube];
-	t->transform.pos.y = 0;
-	t->transform.pos.z = -1;
-
-	cube = AddCubeEntityID();
-	t = &rigid_body_components[cube];
-	t->transform.pos.x = 2;
-	t->transform.pos.y = 1;
-	t->transform.pos.z = 3;
-
-	// Seed random number generator
 	srand((unsigned int)time(NULL));
 
+	for (int i = 0; i < 5; i++)
+	{
+		tf.pos.x = (rand() % 21) - 20;
+		tf.pos.y = (rand() % 11) - 10 + 10;
+		tf.pos.z = (rand() % 21) - 20;
+
+		plane = AddCubeEntityID(tf);
+
+	}
+
+//	printf("root id = %I64d after loadIdTestScene()\n", bsp_root->entity_id);
+
+
+
+
+
+
+
+/*
+	// Seed random number generator
+
 	// Cube dimensions (2x2x2 centered at origin)
-	const float cube_size = 100.0f; 
+	const float cube_size = 5.0f; 
 	const float half_size = cube_size / 2.0f;
 
 	// Y variation range
 	const float y_variation = 0.1f;
+	 
+	float scale = 1.0f;
 
-	float scale = 0.5f;
 
 	for (int i = 0; i < 9000; i++) {
 		// Base position in cube (-1 to 1 range)
@@ -374,26 +447,24 @@ void Scene::LoadIDTestScene()
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float base_y = ((rand() / (float)RAND_MAX) * cube_size - half_size) + 35;
 
-		cube = AddCubeEntityID();
+		tf = Transform(x, base_y + ((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * y_variation, z, scale, scale, scale, 0, 0, 0);
+		cube = AddCubeEntityID(tf);
 		t = &rigid_body_components[cube];
-		t->transform.scale = glm::vec3(scale);
-		// Add slight Y variation and create vec3
-		t->transform.pos = glm::vec3(
-			x,
-			base_y + ((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * y_variation,
-			z
-		);
+
 		glm::vec3 randomForce(
-			std::rand() / (float)RAND_MAX * 2000,
-			std::rand() % 2000,
-			std::rand() % 2000);
+			(std::rand() % 2000) - 1000,
+			(std::rand() % 2000) - 1000,
+			(std::rand() % 2000) - 1000
+		);
 
 		glm::vec3 randomBodyPoint(
-			std::rand() / (float)RAND_MAX * scale
+			(std::rand() / (float)RAND_MAX) - 0.5f,
+			(std::rand() / (float)RAND_MAX) - 0.5f,
+			(std::rand() / (float)RAND_MAX) - 0.5f
 		);
 
 		t->addForceAtBodyPoint(randomForce, randomBodyPoint);
 	}
-
+*/
 
 }

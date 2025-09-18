@@ -8,6 +8,7 @@
 #include <h/Window.h>
 #include <h/MemoryPool.h>
 #include <h/StaticPool.h>
+#include <h/CollisionManager.h>
 #include <unordered_map>
 #include <stdint.h>
 #include <time.h>
@@ -27,6 +28,10 @@ struct Scene
 	EntityComponentBuffer<RigidBody> rigid_body_components;
 	EntityComponentBuffer<RenderComponent> render_components;
 	EntityComponentBuffer<glm::mat4> matrix_transform_components;
+	//EntityComponentBuffer<BVHNode<BoundingSphere>*> bsp_components;
+
+	std::vector<EntityID> cube_entity_ids;
+	SphereTree BVHTree;
 
 	GLmesh loaded_meshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];
@@ -50,7 +55,8 @@ struct Scene
 	void LoadIDTestScene();
 	void UpdateScene(const GLFW::Window& window, float delta_time);
 	CubeEntity* AddCubeEntity();	//send an event to gui class?
-	EntityID AddCubeEntityID();
+	EntityID AddCubeEntityID(const Transform &transform);
+	void RemoveCubeEntity(EntityID id);
 	void RemoveCubeEntity(CubeEntity *entity);
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferStartIt() const;
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferEndIt() const;

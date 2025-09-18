@@ -26,6 +26,7 @@ Transform::Transform(const float &posX, const float &posY, const float &posZ, co
 	scale.z = scaleZ;
 
 	orientation = glm::quat(glm::vec3(rotX, rotY, rotZ));
+	glm::normalize(orientation);
 	updateWorldMatrix(); 
 }
 

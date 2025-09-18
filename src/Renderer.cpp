@@ -130,7 +130,7 @@ void GL::DrawScene_ID(Scene &scene)
 	*/
 
 
-	for (int id = 0; id < EntityManager::GetNumActiveEntities(); id++)
+	for (int id = 0; id < scene.GetEntityCount(CUBE); id++)
 	{
 		RenderComponent &ren = scene.render_components[id];
 		if (ren.should_render)
@@ -175,8 +175,11 @@ void GL::DrawScene_ID_instanced(Scene &scene)
 	*/
 
 
-	int instance_count = EntityManager::GetNumActiveEntities();		//change to id vector.size()
-	glm::mat4 *cube_transforms = new glm::mat4[instance_count];
+	int instance_count = scene.GetEntityCount(CUBE);
+	if (instance_count <= 0)
+		return;
+
+	//glm::mat4 *cube_transforms = new glm::mat4[instance_count];
 
 	GLuint matrices_vbo;
 	glGenBuffers(1, &matrices_vbo);
