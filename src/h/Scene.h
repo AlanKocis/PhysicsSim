@@ -32,6 +32,7 @@ struct Scene
 
 	std::vector<EntityID> cube_entity_ids;
 	SphereTree BVHTree;
+	CollisionManager collision_data;
 
 	GLmesh loaded_meshes[MESH_INDEX_ID::NUM_MESHES];
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];

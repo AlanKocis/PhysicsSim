@@ -1,2 +1,2 @@
 #pragma once
-#define ROOT_DIR "C:/dev/TreesPhysics/res/"
+#define ROOT_DIR "C:/dev/testphys/res/"

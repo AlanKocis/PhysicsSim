@@ -22,7 +22,6 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	if (t > 0.5)
 	{
 		//window.SetCursorMode(GLFW::CursorModes::Visible);
-
 	}
 
 	main_camera.processCameraMovement(window, delta_time);
@@ -33,6 +32,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	static float n = 0.0f;
 	n += 0.5 * delta_time;
 	uint32_t ms = t * 1000;
+
 
 
 	static double _last_input_s = 0.0;
@@ -61,6 +61,7 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 			projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
 			_last_input_s = t;
 			*/
+
 			glm::vec3 worldPos = main_camera.getWorldPos();
 			Transform proj_tf = Transform(worldPos.x, worldPos.y, worldPos.z, 1, 1, 1, 0, 0, 0);
 			EntityID projectile = AddCubeEntityID(proj_tf);
@@ -76,8 +77,6 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	}
 
 	
-
-
 
 	static double _last_reset_s = 0.0;
 	double _reset_cooldown_s = 0.5;
@@ -118,21 +117,33 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 	*/
 
+	collision_data.ResetPContacts();
+	if (BVHTree.root)
+	{
+		unsigned num_ctct = BVHTree.root->getPotentialContacts(collision_data.pcontacts, MAX_CONTACTS);
+		printf("%d found this frame\n", num_ctct);
 
+//		process collisions
+
+
+
+	}
 	
+
+
 	for (EntityID i : cube_entity_ids)
 	{
-		glm::vec3 pos_naught = rigid_body_components[i].transform.pos;
+		//glm::vec3 pos_naught = rigid_body_components[i].transform.pos;
 
 		rigid_body_components[i].integrate(delta_time);
 		rigid_body_components[i].transform.updateWorldMatrix();
 		rigid_body_components[i].GenerateCubeInertiaTensors();		// not sure, but i think this doesnt have to be done each frame, update once when changing dimensions?
 		matrix_transform_components[i] = rigid_body_components[i].transform.worldMatrix;
 
-		glm::vec3 pos_diff = rigid_body_components[i].transform.pos - pos_naught;
+		BoundingSphere other = BVHTree.id_lookup[i]->volume;
+		glm::vec3 pos_diff = rigid_body_components[i].transform.pos - other.centre;
 		if (BVHTree.id_lookup.Exists(i))
 		{
-			BoundingSphere other = BVHTree.id_lookup[i]->volume;
 			float new_radius = glm::length(rigid_body_components[i].transform.scale) * 0.5f;
 			if (glm::length(pos_diff) > other.radius)
 			{
@@ -157,9 +168,9 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	}
 	*/
 
+
 	
 }
-
 
 EntityID Scene::AddCubeEntityID(const Transform &transform)
 {
@@ -176,22 +187,6 @@ EntityID Scene::AddCubeEntityID(const Transform &transform)
 	radius = glm::max(radius, transform.scale.z);
 
 	BVHTree.AddEntity(id, BoundingSphere(transform.pos, radius));
-
-	/*BVHNode<BoundingSphere> *bsp_ptr;
-	if (!bsp_root)
-	{
-		bsp_root = new BVHNode<BoundingSphere>(NULL, BoundingSphere(transform.pos, radius), id);
-		bsp_ptr = bsp_root;
-	}
-	else
-	{
-		bsp_ptr = bsp_root->insert(id, BoundingSphere(transform.pos, radius));
-	}
-	bsp_components.AddComponent(id, bsp_ptr);
-
-	printf("root id after AddCubeEntity(): %I64d\n", id);
-	*/
-
 
 	return id;
 }

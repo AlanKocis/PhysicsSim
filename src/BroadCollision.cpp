@@ -161,6 +161,9 @@ BVHNode::~BVHNode()
         children[1]->parent = NULL;
         delete children[1];
     }
+
+    printf("Deleted/moved node %I64d\n", this);
+
 }
 
 bool BVHNode::overlaps(const BVHNode *other) const
