@@ -3,15 +3,27 @@
 
 #include <h/MemoryPool.h>
 #include <h/BroadCollision.h>
+#include <glm/glm.hpp>
 #include <iostream>
 
-#define MAX_CONTACTS 256
-
+#define MAX_CONTACTS 8192
 
 struct Contact
 {
 	EntityID body_id[2];
-	float friction;
+
+	// Contact frame (world space)
+	glm::vec3 point;       // contact point on surface (world)
+	glm::vec3 normal;      // unit normal pointing from body 0 -> body 1
+	float penetration;     // penetration depth (positive => overlapping)
+
+	// material/solver properties
+	float restitution;     // bounciness (0..1)
+	float friction;        // coefficient of friction
+
+	// accumulators for iterative solvers (optional)
+	float accumulatedNormalImpulse;
+	float accumulatedTangentImpulse;
 };
 
 class SphereTree
@@ -53,14 +65,5 @@ struct CollisionManager
 	bool HasMoreContacts();
 
 };
-
-
-
-
-
-
-
-
-
 
 #endif

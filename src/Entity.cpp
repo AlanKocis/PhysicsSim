@@ -41,6 +41,8 @@ EntityID EntityManager::GenEntityID()
 void EntityManager::ResetIDs()
 {
 	id_gen = 0;
+	free_list.clear();
+	free_list_count = 0;
 }
 
 void EntityManager::RecycleEntityID(EntityID id)

@@ -3,7 +3,7 @@
 void CollisionManager::ResetPContacts()
 {
 	pcontacts_left = MAX_CONTACTS;
-	pcontacts_left = 0;
+	pcontact_count = 0;
 	pcontacts = pcontact_array;
 }
 

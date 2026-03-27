@@ -28,6 +28,13 @@ struct BoundingSphere
 	}
 };
 
+struct PlaneCollider
+{
+    glm::vec3 normal;
+    float offset;
+	glm::vec2 extents;   // half-lengths
+};
+
 /**
  * A base class for nodes in a bounding volume hierarchy.
  *

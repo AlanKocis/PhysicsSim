@@ -1,4 +1,5 @@
 #include <h/RigidBody.h>
+#include <glm/gtc/quaternion.hpp>
 
 RigidBody::RigidBody()
 {
@@ -24,8 +25,8 @@ RigidBody::RigidBody(const Transform &transform)
 	sumForces = { 0, 0, 0 };
 	sumTorques = { 0, 0, 0 };
 	inverseMass = 0.5f;
-	angularDamping = 0.99f;
-	linearDamping = 0.99f;
+	angularDamping = 0.7f;
+	linearDamping = 0.8f;
 	shouldRender = true;
 	isAsleep = false;
 	inverseInertiaTensor = glm::mat3(1.0f);
@@ -35,6 +36,10 @@ RigidBody::RigidBody(const Transform &transform)
 
 void RigidBody::integrate(float time)
 {
+	// clamp huge timesteps (prevents tunneling on resume / hitch)
+	const float MAX_STEP = 0.05f; // 50 ms, tune as needed
+	if (time > MAX_STEP) time = MAX_STEP;
+
 	if (this->inverseMass <= 0.0F)
 		return;
 	assert(time > 0.0F); 
@@ -45,27 +50,25 @@ void RigidBody::integrate(float time)
 	lastFrameAcceleration = sumForces * inverseMass;
 	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * sumTorques; 
 	 
-
 	lastFrameAcceleration += glm::vec3(0, -9, 0);
-	if (transform.pos.y <= -5.0f)
-		lastFrameAcceleration += glm::vec3(0, 10, 0);
 	           
 
 	velocity += lastFrameAcceleration * time;
 	angularVelocity += angularAcceleration * time;
 	velocity *= powf(linearDamping, time);
-	angularVelocity *= powf(linearDamping, time);
+	angularVelocity *= powf(angularDamping, time);
 
 	transform.pos += velocity * time;
 
 
-	glm::quat q = { 0, angularVelocity.x * time * 0.5f, angularVelocity.y * time * 0.5f, angularVelocity.z * time * 0.5f };
-	q *= transform.orientation;
-	
-	transform.orientation.x += q.x;
-	transform.orientation.y += q.y;
-	transform.orientation.z += q.z;
-	transform.orientation.w += q.w;
+	glm::vec3 av = angularVelocity * time * 0.5f;
+	glm::quat delta(0.0f, av.x, av.y, av.z);  // w=0 is fine here, this is a pure quaternion derivative
+	delta = delta * transform.orientation;      // order: delta first, then orientation
+	transform.orientation.w += delta.w;
+	transform.orientation.x += delta.x;
+	transform.orientation.y += delta.y;
+	transform.orientation.z += delta.z;
+	transform.orientation = glm::normalize(transform.orientation);
 
 	sumForces = { 0.0f, 0.0f, 0.0f };
 	sumTorques = { 0.0f, 0.0f, 0.0f };
@@ -99,13 +102,8 @@ void RigidBody::GenerateCubeInertiaTensors()
 	//		Transform basis to get world coordinate inertia tensor
 	//
 
-	//inverseInertiaTensorWorld = glm::mat3(transform.worldMatrix) * inverseInertiaTensor;
-
 	glm::mat3 R = glm::mat3_cast(transform.orientation);
 	inverseInertiaTensorWorld = (R * inverseInertiaTensor * glm::transpose(R));
-
- 
-	
 }
 
 bool RigidBody::hasInfiniteMass()
@@ -135,7 +133,17 @@ void RigidBody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &poi
 	addForceAtWorldPoint(force, p);
 }
 
+void RigidBody::applyImpulseAtWorldPoint(const glm::vec3 &impulse, const glm::vec3 &point)
+{
+	if (inverseMass <= 0.0f) return;
 
+	// linear
+	velocity += impulse * inverseMass;
+
+	// angular
+	glm::vec3 r = point - transform.pos;
+	angularVelocity += inverseInertiaTensorWorld * glm::cross(r, impulse);
+}
 
 void RigidBody::setPosition(const glm::vec3 &position)
 {
@@ -172,6 +180,7 @@ float RigidBody::getInverseMass()
 }
 
 // !!CHECK WITH Particle::hasInfiniteMass() BEFORE CALLING!!
+// Danger: if inverseMass==0 this will divide by zero -- call hasInfiniteMass() first.
 float RigidBody::getMass()
 {
 	return (1.0F / this->inverseMass);

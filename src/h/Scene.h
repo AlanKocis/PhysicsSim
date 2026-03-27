@@ -9,7 +9,11 @@
 #include <h/MemoryPool.h>
 #include <h/StaticPool.h>
 #include <h/CollisionManager.h>
+#include <h/NarrowCollision.h>
+#include <h/ContactResolver.h>
 #include <unordered_map>
+#include <algorithm>
+#include <random>
 #include <stdint.h>
 #include <time.h>
 
@@ -28,9 +32,11 @@ struct Scene
 	EntityComponentBuffer<RigidBody> rigid_body_components;
 	EntityComponentBuffer<RenderComponent> render_components;
 	EntityComponentBuffer<glm::mat4> matrix_transform_components;
+	EntityComponentBuffer<ShapeData> shape_data_components;
 	//EntityComponentBuffer<BVHNode<BoundingSphere>*> bsp_components;
 
 	std::vector<EntityID> cube_entity_ids;
+	std::vector<EntityID> plane_entity_ids;
 	SphereTree BVHTree;
 	CollisionManager collision_data;
 
@@ -38,6 +44,7 @@ struct Scene
 	Shader loaded_shaders[SHADER_INDEX_ID::NUM_SHADERS];
 // stores 0 for every mesh/shader type when unloaded
 //
+	bool run_physics = true;
 	uint32_t num_cubes;
 	uint32_t num_planes;
 //	update these when adding new std::vectors
@@ -49,6 +56,9 @@ struct Scene
 	void LoadSceneShader(SHADER_INDEX_ID shader_id);
 	void LoadAllMeshes();
 	void LoadAllShaders();
+	void pause_physics();
+	void resume_physics();
+	void toggle_physics();
 
 	Scene();
 	~Scene();
@@ -57,7 +67,9 @@ struct Scene
 	void UpdateScene(const GLFW::Window& window, float delta_time);
 	CubeEntity* AddCubeEntity();	//send an event to gui class?
 	EntityID AddCubeEntityID(const Transform &transform);
+	EntityID AddPlaneEntityID(const Transform& transform, const ShapeData &shape_data);
 	void RemoveCubeEntity(EntityID id);
+	void RemovePlaneEntity(EntityID id);
 	void RemoveCubeEntity(CubeEntity *entity);
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferStartIt() const;
 	std::vector<CubeEntity*>::const_iterator GetCubeEntityBufferEndIt() const;

@@ -8,11 +8,41 @@
 
 typedef uint64_t EntityID;
 #define INVALID_ID UINT64_MAX
+#define PLANE_T 0.001f
 
 enum ENTITY_TYPES
 {
 	CUBE,
+	PLANE,
 	NUM_ENTITY_TYPES
+};
+
+struct PlaneData
+{
+	glm::vec3 normal;
+	float offset;
+	glm::vec2 extents;   // half-lengths
+};
+
+struct SphereData
+{
+	float radius;
+};
+
+struct CubeData
+{
+	glm::vec3 extents;	// half-lengths
+};
+
+struct ShapeData
+{
+	ENTITY_TYPES type;
+	union
+	{
+		PlaneData plane;
+		SphereData sphere;
+		CubeData cube;
+	};
 };
 
 class EntityManager
@@ -130,6 +160,8 @@ inline EntityComponentBuffer<T>::EntityComponentBuffer()
 	FreeReallocBuffers();
 }
 
+
+/* NOT USING THIS ANYMORE, USE ENTITYCOMPONENTBUFFERS*/
 struct CubeEntity
 {
 	//	main internals
@@ -164,3 +196,4 @@ struct InstancedRenderComponent
 };
 
 #endif
+

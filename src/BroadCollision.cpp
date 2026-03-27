@@ -14,44 +14,45 @@ BoundingSphere::BoundingSphere(const BoundingSphere &one,
     float distance = glm::length(centreOffset);
     float radiusDiff = two.radius - one.radius;
 
-    // Check if the larger sphere encloses the small one
-    if (radiusDiff * radiusDiff >= distance)
+    // If one sphere completely contains the other, return the larger.
+    if (radiusDiff >= distance)
     {
-        if (one.radius > two.radius)
-        {
-            centre = one.centre;
-            radius = one.radius;
-        }
-        else
-        {
-            centre = two.centre;
-            radius = two.radius;
-        }
+        // 'two' encloses 'one'
+        centre = two.centre;
+        radius = two.radius;
+        return;
+    }
+    if (-radiusDiff >= distance)
+    {
+        // 'one' encloses 'two'
+        centre = one.centre;
+        radius = one.radius;
+        return;
     }
 
-    // Otherwise we need to work with partially
-    // overlapping spheres
+    // Otherwise we need to work with partially overlapping spheres
+    radius = (distance + one.radius + two.radius) * 0.5f;
+
+    // The new centre is based on one's centre, moved towards
+    // two's centre by an amount proportional to the spheres' radii.
+    if (distance > 0.0f)
+    {
+        centre = one.centre + centreOffset * ((radius - one.radius) / distance);
+    }
     else
     {
-        distance = glm::sqrt(distance);
-        radius = (distance + one.radius + two.radius) * (0.5f);
-
-        // The new centre is based on one's centre, moved towards
-        // two's centre by an ammount proportional to the spheres'
-        // radii.
+        // centres are effectively identical
         centre = one.centre;
-        if (distance > 0)
-        {
-            centre += centreOffset * ((radius - one.radius) / distance);
-        }
     }
-
 }
 
 bool BoundingSphere::overlaps(const BoundingSphere &other) const
 {
-    float distanceSquared = glm::length((centre - other.centre));
-    return distanceSquared < (radius + other.radius) * (radius + other.radius);
+    // Use squared distance to avoid unnecessary sqrt and compare correctly.
+    glm::vec3 diff = centre - other.centre;
+    float distSq = glm::dot(diff, diff);
+    float rsum = radius + other.radius;
+    return distSq < (rsum * rsum);
 }
 
 float BoundingSphere::getGrowth(const BoundingSphere &other) const
@@ -68,17 +69,21 @@ bool BVHNode::isLeaf() const
     return (body_id != INVALID_ID);
 }
 
-unsigned BVHNode::getPotentialContacts(PotentialContact *contacts, unsigned limit) const
+unsigned BVHNode::getPotentialContacts(PotentialContact* contacts, unsigned limit) const
 {
-    // Early out if we don't have the room for contacts, or
-    // if we're a leaf node.
     if (isLeaf() || limit == 0) return 0;
 
-    // Get the potential contacts of one of our children with
-    // the other
-    return children[0]->getPotentialContactsWith(
-        children[1], contacts, limit
-    );
+    // Test children against each other
+    unsigned count = children[0]->getPotentialContactsWith(children[1], contacts, limit);
+
+    // Also recurse within each child's subtree
+    if (limit > count)
+        count += children[0]->getPotentialContacts(contacts + count, limit - count);
+
+    if (limit > count)
+        count += children[1]->getPotentialContacts(contacts + count, limit - count);
+
+    return count;
 }
 
 void BVHNode::insert(EntityID new_body_id, const BoundingSphere &newVolume)
@@ -162,7 +167,7 @@ BVHNode::~BVHNode()
         delete children[1];
     }
 
-    printf("Deleted/moved node %I64d\n", this);
+    //printf("Deleted/moved node %I64d\n", this);
 
 }
 

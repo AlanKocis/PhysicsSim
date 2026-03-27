@@ -31,6 +31,7 @@ struct RigidBody
 	void addForceAtCenter(const glm::vec3 &force);
 	void addForceAtWorldPoint(const glm::vec3 &force, const glm::vec3 &point);
 	void addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point);
+	void applyImpulseAtWorldPoint(const glm::vec3 &impulse, const glm::vec3 &point);
 	void setPosition(const glm::vec3 &position);
 	void setMass(const float &mass);
 	void setDamping(const float &d);

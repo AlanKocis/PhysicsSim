@@ -38,6 +38,61 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 	static double _last_input_s = 0.0;
 	double _cooldown_s = 0.4;
 
+
+
+	/*
+	// Two orbiting gravity wells
+	double orbit_speed = 0.5;
+	float orbit_radius = 15.0f;
+	glm::vec3 well1 = glm::vec3(
+		orbit_radius * cos(t * orbit_speed),
+		5.0f,
+		orbit_radius * sin(t * orbit_speed)
+	);
+	glm::vec3 well2 = glm::vec3(
+		orbit_radius * cos(t * orbit_speed + glm::pi<float>()),
+		5.0f,
+		orbit_radius * sin(t * orbit_speed + glm::pi<float>())
+	);
+
+	float well_strength = 800.0f;
+
+	for (EntityID id : cube_entity_ids)
+	{
+		RigidBody& rb = rigid_body_components[id];
+		if (rb.inverseMass <= 0.0f) continue; // skip static plane
+
+		for (const glm::vec3& well : { well1, well2 })
+		{
+			glm::vec3 dir = well - rb.transform.pos;
+			float distSq = glm::dot(dir, dir);
+			distSq = glm::max(distSq, 4.0f); // clamp to avoid infinite force up close
+			float forceMag = well_strength * 10 / distSq ;
+			rb.addForceAtCenter(glm::normalize(dir) * forceMag);
+		}
+	}
+	*/
+
+
+
+
+
+	if (window.KeyPressed(HOBBES_KEY_TAB))
+	{
+		static double _last_toggle_s = 0.0;
+		if (t - _last_toggle_s >= _cooldown_s)
+		{
+			_last_toggle_s = t;
+			toggle_physics(); // toggle_physics now performs pause/resume once
+		}
+	}
+
+	if (run_physics)
+		resume_physics();
+	else
+		pause_physics();
+
+
 	if (window.KeyPressed(HOBBES_KEY_SPACE))
 	{
 		//cube_entities[0].physics.transform.scale = { 0.3f, 0.3f, 0.3f };
@@ -47,31 +102,22 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 
 		if (t - _last_input_s >= _cooldown_s)
 		{
-			/*CubeEntity *projectile = AddCubeEntity();
-	
-	
-			//CubeEntity *cube_projectile = AddCubeEntity();
-			projectile->physics.transform.pos = main_camera.getWorldPos();
-			glm::vec3 impulse = main_camera.getForwardVec();
-			impulse *= 20000;
-
-			float omega = 0.4 * sin(0.005 * t); //-.4 to 0.4
-			float lambda = omega * omega * 2.0f; // positive only
-			//cube_projectile->physics.transform.scale = glm::vec3(lambda);
-			projectile->physics.addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
-			_last_input_s = t;
-			*/
-
 			glm::vec3 worldPos = main_camera.getWorldPos();
 			Transform proj_tf = Transform(worldPos.x, worldPos.y, worldPos.z, 1, 1, 1, 0, 0, 0);
+			proj_tf.scale = glm::vec3(0.5f);
 			EntityID projectile = AddCubeEntityID(proj_tf);
+			rigid_body_components[projectile].inverseMass = 0.2f; // make it lighter than default cubes
 
-			glm::vec3 impulse = main_camera.getForwardVec();
-			int len = impulse.length();
-			impulse /= len;
-			impulse *= (50000);
-			float omega = 0.1 * sin(0.005 * t); //-.4 to 0.4
-			rigid_body_components[projectile].addForceAtBodyPoint(impulse, glm::vec3(omega, -omega, 1.0f));
+			glm::vec3 impulse = glm::normalize(main_camera.getForwardVec()) * 100.0f;  // was 100.0f
+
+
+			// Apply linear impulse at center — no torque generated
+			rigid_body_components[projectile].applyImpulseAtWorldPoint(impulse, worldPos);
+
+			// Optional: add a small deliberate spin independently
+			float spin = 2.0f;
+			rigid_body_components[projectile].angularVelocity = glm::vec3(0, spin, 0);
+
 			_last_input_s = t;
 		}
 	}
@@ -90,86 +136,63 @@ void Scene::UpdateScene(const GLFW::Window &window, float delta_time)
 				RemoveCubeEntity(cube_entity_ids.front());
 			}
 
+			this->LoadIDTestScene();
 
 			_last_reset_s = t;
 		}
 	}
 
+	constexpr double PHYS_DT = 1.0 / 120.0;
+	static double physicsAccumulator = 0.0;
+	constexpr double MAX_ACCUM = 0.25;
 
-//	physics
-// 	update uniforms
+	if (delta_time > MAX_ACCUM) delta_time = (float)MAX_ACCUM;
+	physicsAccumulator += delta_time;
 
-// 
+	if (physicsAccumulator > MAX_ACCUM) physicsAccumulator = MAX_ACCUM;
 
-//	cube entities
-	
-
-	/*
-	for (CubeEntity *&entity : cube_entities)
+	while (physicsAccumulator >= PHYS_DT)
 	{
-		entity->physics.integrate(delta_time);
-		entity->physics.transform.updateWorldMatrix();
-		entity->physics.GenerateCubeInertiaTensors();
-	}
-
-
-
-
-	*/
-
-	collision_data.ResetPContacts();
-	if (BVHTree.root)
-	{
-		unsigned num_ctct = BVHTree.root->getPotentialContacts(collision_data.pcontacts, MAX_CONTACTS);
-		printf("%d found this frame\n", num_ctct);
-
-//		process collisions
-
-
-
-	}
-	
-
-
-	for (EntityID i : cube_entity_ids)
-	{
-		//glm::vec3 pos_naught = rigid_body_components[i].transform.pos;
-
-		rigid_body_components[i].integrate(delta_time);
-		rigid_body_components[i].transform.updateWorldMatrix();
-		rigid_body_components[i].GenerateCubeInertiaTensors();		// not sure, but i think this doesnt have to be done each frame, update once when changing dimensions?
-		matrix_transform_components[i] = rigid_body_components[i].transform.worldMatrix;
-
-		BoundingSphere other = BVHTree.id_lookup[i]->volume;
-		glm::vec3 pos_diff = rigid_body_components[i].transform.pos - other.centre;
-		if (BVHTree.id_lookup.Exists(i))
+		// --- per-entity physics + BVH maintenance ---
+		for (EntityID i : cube_entity_ids)
 		{
-			float new_radius = glm::length(rigid_body_components[i].transform.scale) * 0.5f;
-			if (glm::length(pos_diff) > other.radius)
-			{
-				BVHTree.RemoveEntity(i);
-				BVHTree.AddEntity(i, BoundingSphere(rigid_body_components[i].transform.pos, new_radius));
-			}
+			RigidBody& rb = rigid_body_components[i];
+
+			if (!rb.isAsleep)
+				rb.integrate((float)PHYS_DT);
+
+			rb.transform.updateWorldMatrix();
+			rb.GenerateCubeInertiaTensors();
+			matrix_transform_components[i] = rb.transform.worldMatrix;
 		}
+
+
+		BVHTree.Clear();
+
+		// Shuffle entity IDs to balance the BVH tree
+		std::vector<EntityID> shuffled_ids = cube_entity_ids;
+		static std::mt19937 rng(std::random_device{}());
+		std::shuffle(shuffled_ids.begin(), shuffled_ids.end(), rng);
+		for (EntityID i : shuffled_ids)
+		{
+			RigidBody& rb = rigid_body_components[i];
+			float new_radius = glm::length(rb.transform.scale) * 0.5f;
+			BVHTree.AddEntity(i, BoundingSphere(rb.transform.pos, new_radius));
+		}
+
+		NarrowPhase::ProcessCollisions(*this);
+
+		// UPDATE TRANSFORMS AFTER COLLISION RESOLUTION
+		for (EntityID i : cube_entity_ids)
+		{
+			RigidBody& rb = rigid_body_components[i];
+			rb.transform.updateWorldMatrix();
+			matrix_transform_components[i] = rb.transform.worldMatrix;
+		}
+
+		physicsAccumulator -= PHYS_DT;
 	}
-	
-	
 
-	/*
-	for (RigidBody &rb : rigid_body_components.components)
-	{
-		rb.integrate(delta_time);
-		rb.transform.updateWorldMatrix();
-		rb.GenerateCubeInertiaTensors();
-
-		//loaded_shaders[CUBE_SHADER_ID].UseProgram();
-		//loaded_shaders[CUBE_SHADER_ID].setMat4("view", main_camera.getViewMatrix());
-		//loaded_shaders[CUBE_SHADER_ID].setMat4("proj", main_camera.getProjectionMatrix());
-	}
-	*/
-
-
-	
 }
 
 EntityID Scene::AddCubeEntityID(const Transform &transform)
@@ -182,6 +205,28 @@ EntityID Scene::AddCubeEntityID(const Transform &transform)
 	GLuint shader = loaded_shaders[CUBE_SHADER_ID].getID();
 	render_components.AddComponent(id, { vao, shader, 1 });
 	matrix_transform_components.AddComponent(id, glm::mat4(1.0f));
+	shape_data_components.AddComponent(id, ShapeData{ .type = CUBE});
+
+	float radius = glm::max(transform.scale.x, transform.scale.y);
+	radius = glm::max(radius, transform.scale.z);
+
+	BVHTree.AddEntity(id, BoundingSphere(transform.pos, radius));
+
+	return id;
+}
+
+EntityID Scene::AddPlaneEntityID(const Transform& transform, const ShapeData& shape_data)
+{
+	EntityID id = EntityManager::GenEntityID();
+	cube_entity_ids.push_back(id);
+	plane_entity_ids.push_back(id);
+
+	rigid_body_components.AddComponent(id, RigidBody(transform));
+	GLuint vao = loaded_meshes[CUBE_MESH_ID].getVAO();
+	GLuint shader = loaded_shaders[CUBE_SHADER_ID].getID();
+	render_components.AddComponent(id, { vao, shader, 1 });
+	matrix_transform_components.AddComponent(id, glm::mat4(1.0f));
+	shape_data_components.AddComponent(id, shape_data);
 
 	float radius = glm::max(transform.scale.x, transform.scale.y);
 	radius = glm::max(radius, transform.scale.z);
@@ -199,10 +244,9 @@ void Scene::RemoveCubeEntity(EntityID id)
 	render_components.RemoveComponent(id);
 	matrix_transform_components.RemoveComponent(id);
 	//delete bsp_components[id];
-	printf("Deleted entity %I64d\n", id);
+	//printf("Deleted entity %I64d\n", id);
 	// bsp tree requires refitting
-	//bsp_components.FreeReallocBuffers();  instead of doing expensive reallocs, just use id access to reassign pointers                  
-	//printf("root id = %%I64d after RemoveCubeEntity()\n", bsp_root->entity_id);
+	//bsp_components.FreeReallocBuffers();  instead of doing expensive reallocs, just use id access to reassign pointers                  			//printf("root id = %%I64d after RemoveCubeEntity()\n", bsp_root->entity_id);
 	//bsp_root->traverseRehashIDs(bsp_root, bsp_components);
 
 	EntityManager::RecycleEntityID(id);
@@ -214,8 +258,30 @@ void Scene::RemoveCubeEntity(EntityID id)
 		std::swap(*it, cube_entity_ids[cube_entity_ids.size() - 1]);
 	}
 	cube_entity_ids.pop_back();
+}
 
+void Scene::RemovePlaneEntity(EntityID id)
+{
+	assert(plane_entity_ids.size() > 0);
 
+	rigid_body_components.RemoveComponent(id);
+	render_components.RemoveComponent(id);
+	matrix_transform_components.RemoveComponent(id);
+	//delete bsp_components[id];
+	//printf("Deleted entity %I64d\n", id);
+	// bsp tree requires refitting
+	//bsp_components.FreeReallocBuffers();  instead of doing expensive reallocs, just use id access to reassign pointers                  			//printf("root id = %%I64d after RemoveCubeEntity()\n", bsp_root->entity_id);
+	//bsp_root->traverseRehashIDs(bsp_root, bsp_components);
+
+	EntityManager::RecycleEntityID(id);
+	BVHTree.RemoveEntity(id);
+
+	auto it = std::find(plane_entity_ids.begin(), plane_entity_ids.end(), id);
+	if (plane_entity_ids.size() > 1)
+	{
+		std::swap(*it, plane_entity_ids[plane_entity_ids.size() - 1]);
+	}
+	plane_entity_ids.pop_back();
 }
 
 void Scene::RemoveCubeEntity(CubeEntity *entity)
@@ -280,10 +346,13 @@ void Scene::FreeBuffers()
 	cube_entities.clear();
 	num_cubes = 0;
 
+
+
 	rigid_body_components.FreeReallocBuffers();
 	render_components.FreeReallocBuffers();
 	matrix_transform_components.FreeReallocBuffers();
 	cube_entity_ids.clear();
+	plane_entity_ids.clear();
 	EntityManager::ResetIDs();
 
 	//delete bsp_root;
@@ -319,6 +388,27 @@ void Scene::LoadAllMeshes()
 void Scene::LoadAllShaders()
 {
 	LoadSceneShader(CUBE_SHADER_ID);
+}
+
+void Scene::pause_physics()
+{
+	for (EntityID id : cube_entity_ids)
+	{
+		rigid_body_components[id].isAsleep = true;
+	}
+}
+
+void Scene::resume_physics()
+{
+	for (EntityID id : cube_entity_ids)
+	{
+		rigid_body_components[id].isAsleep = false;
+	}
+}
+
+void Scene::toggle_physics()
+{
+	run_physics = !run_physics;
 }
 
 
@@ -394,40 +484,24 @@ void Scene::LoadIDTestScene()
 	FreeBuffers();
 	LoadAllMeshes();
 	LoadAllShaders();
-
+	//pause_physics();
 
 	Transform tf = Transform(0, 0, 0, 1, 1, 1, 0, 0, 0);
-	EntityID plane = AddCubeEntityID(tf);
-	RigidBody *t = &rigid_body_components[plane];
-	t->inverseMass = 0.0f;
-	t->transform.scale = glm::vec3(100.0f, 0.0f, 100.0f);
-	t->transform.pos.y = -5.0f;
+	tf.scale = glm::vec3(300.0f, 0.001f, 300.0f);
+	tf.pos.y = -2.0f;
+	PlaneData floor = { glm::vec3(0, 1, 0), 0.0f, glm::vec2(300, 300) };
+	EntityID plane = AddPlaneEntityID(tf, ShapeData{ PLANE, floor });
+	rigid_body_components[plane].inverseMass = 0.0f;
+
 
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 5; i++)
-	{
-		tf.pos.x = (rand() % 21) - 20;
-		tf.pos.y = (rand() % 11) - 10 + 10;
-		tf.pos.z = (rand() % 21) - 20;
-
-		plane = AddCubeEntityID(tf);
-
-	}
-
-//	printf("root id = %I64d after loadIdTestScene()\n", bsp_root->entity_id);
 
 
-
-
-
-
-
-/*
 	// Seed random number generator
 
 	// Cube dimensions (2x2x2 centered at origin)
-	const float cube_size = 5.0f; 
+	const float cube_size = 50.0f; 
 	const float half_size = cube_size / 2.0f;
 
 	// Y variation range
@@ -436,20 +510,21 @@ void Scene::LoadIDTestScene()
 	float scale = 1.0f;
 
 
-	for (int i = 0; i < 9000; i++) {
+	for (int i = 0; i < 100; i++) {
 		// Base position in cube (-1 to 1 range)
 		float x = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float z = (rand() / (float)RAND_MAX) * cube_size - half_size;
 		float base_y = ((rand() / (float)RAND_MAX) * cube_size - half_size) + 35;
 
 		tf = Transform(x, base_y + ((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * y_variation, z, scale, scale, scale, 0, 0, 0);
-		cube = AddCubeEntityID(tf);
-		t = &rigid_body_components[cube];
+		EntityID cube = AddCubeEntityID(tf);
+		RigidBody *t = &rigid_body_components[cube];
+		t->inverseMass = 0.02f;
 
 		glm::vec3 randomForce(
-			(std::rand() % 2000) - 1000,
-			(std::rand() % 2000) - 1000,
-			(std::rand() % 2000) - 1000
+			(std::rand() % 5000) - 1000,
+			(std::rand() % 5000) - 1000,
+			(std::rand() % 5000) - 1000
 		);
 
 		glm::vec3 randomBodyPoint(
@@ -458,8 +533,7 @@ void Scene::LoadIDTestScene()
 			(std::rand() / (float)RAND_MAX) - 0.5f
 		);
 
-		t->addForceAtBodyPoint(randomForce, randomBodyPoint);
+		//t->addForceAtBodyPoint(-(t->getPosition() * 100.0f * (1/glm::length(t->getPosition()))), randomBodyPoint);
 	}
-*/
 
 }
